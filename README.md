@@ -3,8 +3,7 @@
 
 Mobile-first pocket accountant for Icelandic hybrid workers - people with a
 payslip job plus contractor/gig income, multiple part-time employers, or both.
-Never positioned publicly as "for expats," even though expats and gig
-contractors (Wolt/Aha couriers, etc.) are the real target segment - see
+(Wolt/Aha couriers, etc.) are the real target segment - see
 docs/taxis-architecture-map.md's core design principle.
 
 This repo is the code scaffold generated from a long architecture/design
