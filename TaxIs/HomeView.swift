@@ -44,14 +44,16 @@ struct HomeView: View {
     @EnvironmentObject private var revenueStore: VerktakiRevenueStore
     @EnvironmentObject private var expenseStore: VerktakiExpenseStore
     @EnvironmentObject private var profileStore: UserProfileStore
+    @EnvironmentObject private var ledgerStore: TaxLedgerStore
     @State private var selectedNotification: DashboardNotification?
     @State private var isLoading = false
     @State private var loadError: String?
     @State private var settlement: SettlementEstimate?
     @State private var insights: [DashboardNotification] = []
 
-    private var isSalaried: Bool   { onboarding.workerTypes.contains(.employee) }
-    private var isContractor: Bool { onboarding.workerTypes.contains(.contractor) }
+    private var isSalaried:     Bool { onboarding.workerTypes.contains(.employee) }
+    private var isContractor:   Bool { onboarding.workerTypes.contains(.contractor) }
+    private var isHeimagisting: Bool { onboarding.workerTypes.contains(.heimagisting) }
 
     var body: some View {
         ZStack {
@@ -89,8 +91,14 @@ struct HomeView: View {
         .sheet(item: $selectedNotification) { n in
             NotificationDetailSheet(notification: n) { selectedNotification = nil }
         }
-        .task { await loadInsights() }
-        .refreshable { await loadInsights() }
+        .task {
+            await loadInsights()
+            if isHeimagisting && !isSalaried && !isContractor { await ledgerStore.load() }
+        }
+        .refreshable {
+            await loadInsights()
+            if isHeimagisting && !isSalaried && !isContractor { await ledgerStore.load() }
+        }
     }
 
     // MARK: - Header
@@ -101,7 +109,7 @@ struct HomeView: View {
                 let firstName = profileStore.displayName.isEmpty
                     ? nil
                     : profileStore.displayName.components(separatedBy: " ").first
-                Text(firstName.map { "Sæl, \($0)" } ?? "Sæl")
+                Text(firstName.map { "Hæ, \($0)" } ?? "Hæ")
                     .font(.title2.bold())
                     .foregroundStyle(TaxIsTheme.navy)
                 Text(monthLabel)
@@ -156,8 +164,23 @@ struct HomeView: View {
                     showDivider: false
                 )
             }
-            if !isSalaried && !isContractor {
-                overviewRow(icon: "person.crop.circle", label: "Veldu starfstegund hér að ofan", value: "", showDivider: false)
+            if isHeimagisting && !isSalaried && !isContractor {
+                let m = ledgerStore.metrics
+                let lodgingTax   = Double(m.nightsUsed) * 800
+                let capitalTax   = m.cliffTriggered ? 0.0 : m.grossTotal * 0.22
+                let totalSetAside = lodgingTax + capitalTax
+                overviewRow(
+                    icon: "moon.fill",
+                    label: "Nætur leigðar (af 90)",
+                    value: "\(m.nightsUsed) · \(max(0, 90 - m.nightsUsed)) eftir",
+                    showDivider: true
+                )
+                overviewRow(
+                    icon: "shield.fill",
+                    label: "Leggja til hliðar",
+                    value: totalSetAside > 0 ? formatISK(Decimal(totalSetAside)) : "0 kr.",
+                    showDivider: false
+                )
             }
         }
         .background(TaxIsTheme.card)
@@ -484,4 +507,5 @@ func formatISK(_ value: Decimal) -> String {
         .environmentObject(VerktakiRevenueStore())
         .environmentObject(VerktakiExpenseStore())
         .environmentObject(UserProfileStore())
+        .environmentObject(TaxLedgerStore.shared)
 }

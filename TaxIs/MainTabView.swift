@@ -12,6 +12,15 @@ struct MainTabView: View {
     private var isBlandad:      Bool { isSalaried && isContractor }
     private var hasOtherIncome: Bool { isSalaried || isContractor }
 
+    // Compact = single-type worker who needs only one feature tab
+    // (launþegi-only or heimagisting-only — verktaki-only keeps útgjöld)
+    private var isCompact: Bool {
+        (isSalaried && !isContractor && !isHeimagisting) ||
+        (isHeimagisting && !isSalaried && !isContractor)
+    }
+
+    private var centerTabIndex: Int { isCompact ? 1 : 2 }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             currentPage
@@ -21,65 +30,82 @@ struct MainTabView: View {
             CustomTabBar(selected: $selectedTab, config: tabConfig)
         }
         .ignoresSafeArea(edges: .bottom)
+        .onAppear {
+            if isCompact && selectedTab == 2 { selectedTab = 1 }
+        }
     }
 
     @ViewBuilder
     private var currentPage: some View {
-        switch selectedTab {
-        case 0: leftView1
-        case 1: leftView2
-        case 2: HomeView(onboarding: onboarding)
-        case 3: FærslurView()
-        default: ProfileView(session: session, onboarding: onboarding)
+        if isCompact {
+            switch selectedTab {
+            case 0:  compactFeatureView
+            case 1:  HomeView(onboarding: onboarding)
+            case 2:  FærslurView()
+            default: ProfileView(session: session, onboarding: onboarding)
+            }
+        } else {
+            switch selectedTab {
+            case 0:  leftView1
+            case 1:  leftView2
+            case 2:  HomeView(onboarding: onboarding)
+            case 3:  FærslurView()
+            default: ProfileView(session: session, onboarding: onboarding)
+            }
         }
+    }
+
+    @ViewBuilder private var compactFeatureView: some View {
+        if isHeimagisting { HeimagistingView() }
+        else              { LaunasedlarView()  }
     }
 
     @ViewBuilder private var leftView1: some View {
-        if isHeimagisting && !hasOtherIncome {
-            HeimagistingView()
-        } else if isBlandad {
-            BlandadTekjurView()
-        } else if isSalaried {
-            LaunasedlarView()
-        } else if isContractor {
-            TekjurView()
-        } else {
-            UtgjoldView()
-        }
+        if isBlandad                         { BlandadTekjurView() }
+        else if isSalaried && isHeimagisting { LaunasedlarView()   }
+        else if isContractor                 { TekjurView()        }
+        else                                 { HomeView(onboarding: onboarding) }
     }
 
     @ViewBuilder private var leftView2: some View {
-        if isHeimagisting && hasOtherIncome {
-            HeimagistingView()
-        } else {
-            UtgjoldView()
-        }
+        if isHeimagisting && hasOtherIncome { HeimagistingView() }
+        else                                { UtgjoldView()      }
     }
 
     private var tabConfig: TabConfig {
+        if isCompact {
+            let feature: TabDef = isHeimagisting
+                ? TabDef(icon: "house.fill", label: "Heimagisting")
+                : TabDef(icon: "doc.text",   label: lm.t(.tabPayslips))
+            return .compact(
+                feature: feature,
+                center:  TabDef(icon: "house.fill",         label: lm.t(.tabHome)),
+                right1:  TabDef(icon: "lightbulb",          label: lm.t(.tabInsights)),
+                right2:  TabDef(icon: "person.crop.circle", label: lm.t(.tabSettings))
+            )
+        }
+
         let left1: TabDef
-        if isHeimagisting && !hasOtherIncome {
-            left1 = TabDef(icon: "house.fill", label: "Heimagisting")
-        } else if isBlandad {
-            left1 = TabDef(icon: "briefcase.fill", label: lm.t(.income))
-        } else if isSalaried {
-            left1 = TabDef(icon: "doc.text", label: lm.t(.tabPayslips))
+        if isBlandad {
+            left1 = TabDef(icon: "briefcase.fill",             label: lm.t(.income))
+        } else if isSalaried && isHeimagisting {
+            left1 = TabDef(icon: "doc.text",                   label: lm.t(.tabPayslips))
         } else if isContractor {
-            left1 = TabDef(icon: "chart.line.uptrend.xyaxis", label: lm.t(.tabRevenue))
+            left1 = TabDef(icon: "chart.line.uptrend.xyaxis",  label: lm.t(.tabRevenue))
         } else {
-            left1 = TabDef(icon: "bag", label: lm.t(.tabExpenses))
+            left1 = TabDef(icon: "house.fill",                 label: "Heimagisting")
         }
 
         let left2: TabDef = isHeimagisting && hasOtherIncome
             ? TabDef(icon: "house.fill", label: "Heimagisting")
             : TabDef(icon: "bag",        label: lm.t(.tabExpenses))
 
-        return TabConfig(
-            left1:  left1,
-            left2:  left2,
-            center: TabDef(icon: "house.fill",         label: lm.t(.tabHome)),
-            right1: TabDef(icon: "lightbulb",          label: lm.t(.tabInsights)),
-            right2: TabDef(icon: "person.crop.circle", label: lm.t(.tabSettings))
+        return .standard(
+            left1,
+            left2,
+            TabDef(icon: "house.fill",         label: lm.t(.tabHome)),
+            TabDef(icon: "lightbulb",          label: lm.t(.tabInsights)),
+            TabDef(icon: "person.crop.circle", label: lm.t(.tabSettings))
         )
     }
 }
@@ -92,8 +118,15 @@ struct TabDef {
 }
 
 struct TabConfig {
-    let left1, left2, center, right1, right2: TabDef
-    var all: [TabDef] { [left1, left2, center, right1, right2] }
+    let items: [TabDef]
+    let centerIndex: Int
+
+    static func standard(_ l1: TabDef, _ l2: TabDef, _ c: TabDef, _ r1: TabDef, _ r2: TabDef) -> TabConfig {
+        TabConfig(items: [l1, l2, c, r1, r2], centerIndex: 2)
+    }
+    static func compact(feature: TabDef, center: TabDef, right1: TabDef, right2: TabDef) -> TabConfig {
+        TabConfig(items: [feature, center, right1, right2], centerIndex: 1)
+    }
 }
 
 // MARK: - Custom tab bar
@@ -107,7 +140,6 @@ struct CustomTabBar: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Solid dark background matching app theme
             Rectangle()
                 .fill(TaxIsTheme.bg)
                 .frame(height: barHeight + bottomPad + 20)
@@ -119,9 +151,9 @@ struct CustomTabBar: View {
                 )
 
             HStack(alignment: .bottom, spacing: 0) {
-                ForEach(Array(config.all.enumerated()), id: \.offset) { idx, tab in
-                    if idx == 2 {
-                        centerButton(tab)
+                ForEach(Array(config.items.enumerated()), id: \.offset) { idx, tab in
+                    if idx == config.centerIndex {
+                        centerButton(tab, index: idx)
                     } else {
                         regularButton(tab, index: idx)
                     }
@@ -148,8 +180,8 @@ struct CustomTabBar: View {
         .buttonStyle(.plain)
     }
 
-    private func centerButton(_ tab: TabDef) -> some View {
-        Button { selected = 2 } label: {
+    private func centerButton(_ tab: TabDef, index: Int) -> some View {
+        Button { selected = index } label: {
             VStack(spacing: 4) {
                 ZStack {
                     Circle()
@@ -164,7 +196,7 @@ struct CustomTabBar: View {
 
                 Text(tab.label)
                     .font(.system(size: 9.5, weight: .semibold))
-                    .foregroundStyle(selected == 2 ? TaxIsTheme.mint : TaxIsTheme.muted)
+                    .foregroundStyle(selected == index ? TaxIsTheme.mint : TaxIsTheme.muted)
                     .offset(y: -2)
             }
             .frame(height: barHeight)
