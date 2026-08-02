@@ -66,7 +66,7 @@ private struct TransactionRow: View {
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 4) {
-                Text("\(record.totalAmountISK) kr.")
+                Text(verbatim: "\(NSDecimalNumber(decimal: record.totalAmountISK).intValue) kr.")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(TaxIsTheme.text)
                 statusBadge

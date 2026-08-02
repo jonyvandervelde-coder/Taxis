@@ -272,7 +272,7 @@ struct HeimagistingView: View {
     }
 
     private var weekdayHeader: some View {
-        let days = ["L", "Þ", "M", "M", "F", "L", "S"]
+        let days = ["M", "Þ", "M", "F", "F", "L", "S"]
         return HStack(spacing: 0) {
             ForEach(days, id: \.self) { d in
                 Text(d)

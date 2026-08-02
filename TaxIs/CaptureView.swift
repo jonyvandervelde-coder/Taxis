@@ -191,7 +191,7 @@ struct CaptureView: View {
                 Text(record.vendorName)
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(TaxIsTheme.text)
-                Text("\(record.totalAmountISK) kr. · \(ExtractedTransaction.dateOnlyFormatter.string(from: record.transactionDate))")
+                Text(verbatim: "\(NSDecimalNumber(decimal: record.totalAmountISK).intValue) kr. · \(ExtractedTransaction.dateOnlyFormatter.string(from: record.transactionDate))")
                     .font(.caption)
                     .foregroundStyle(TaxIsTheme.muted)
             }

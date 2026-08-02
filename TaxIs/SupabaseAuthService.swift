@@ -240,7 +240,7 @@ extension SupabaseAuthService {
         var remaining = length
         while remaining > 0 {
             var bytes = [UInt8](repeating: 0, count: 16)
-            SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
+            _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
             bytes.forEach { b in
                 guard remaining > 0 else { return }
                 if b < charset.count {

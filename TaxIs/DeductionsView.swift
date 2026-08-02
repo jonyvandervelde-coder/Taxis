@@ -320,7 +320,7 @@ struct DeductionsView: View {
                     Text(formatISK(r.totalRetentionISK))
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(TaxIsTheme.mint)
-                    Text("≈ \(r.retentionPercent)% af tekjum")
+                    Text(verbatim: "≈ \(NSDecimalNumber(decimal: r.retentionPercent).intValue)% af tekjum")
                         .font(.caption)
                         .foregroundStyle(TaxIsTheme.muted)
                 }
