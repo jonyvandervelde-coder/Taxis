@@ -1,0 +1,413 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7042DB561B15BA118198EA4C /* TaxIsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735B3B31BD7AA2DE441E955D /* TaxIsApp.swift */; };
+		AD1CED0952CC6C7353246554 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4247E6A63BF303C51B69C1 /* ContentView.swift */; };
+		180E9AD8CBEFB57EE4D05088 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FC7DA92DFAE47A897055AC /* KeychainHelper.swift */; };
+		EA3C4D81D6EAC5FB73ED21A6 /* SupabaseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F672E84A30A75333EEA18E02 /* SupabaseSession.swift */; };
+		E8E0C262A51F68FCE4A9A535 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B559B36F0729951E81A92FC /* SupabaseConfig.swift */; };
+		2BBE6EF1693038D5987904C6 /* ReceiptExtractionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366B70243D6582D6EE397128 /* ReceiptExtractionService.swift */; };
+		DFE545EE505DDECD1FD346A5 /* TaxIsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988FBBD3426E589954A8FBE2 /* TaxIsModels.swift */; };
+		12CDC15B2ED8C2BC03299E31 /* TransactionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26C187A559D6C9A6EB5E13C /* TransactionRecord.swift */; };
+		A2378A7A0903F54B985A74DE /* SupabaseTransactionRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F3385D7E45A13D03F96DB0 /* SupabaseTransactionRepository.swift */; };
+		C07860D4DA67281AF0E33321 /* TaxIsTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6E8AFE161E507ECB355EB8 /* TaxIsTheme.swift */; };
+		26545CE46009DE8B88AC2F98 /* SupabaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B955421F7221734364180F3 /* SupabaseAuthService.swift */; };
+		37A2B31939273926627C1ED2 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CBF4BD96AD7F72D33222B55 /* SessionStore.swift */; };
+		061387164C8B951A208E5DEB /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFD6B13A8820E00A9376C6B7 /* AuthView.swift */; };
+		D10E916CD2829C25686D4687 /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50F2B1D46DCBBD401C29688F /* CaptureView.swift */; };
+		DCB508D4004DDE3CB07EA6A4 /* TransactionConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A5B07C9159BD2AB1A217304 /* TransactionConfirmationView.swift */; };
+		99EE2C162A3827F647A908F5 /* TransactionsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95A2DF638D845B4DAFB4B51 /* TransactionsListView.swift */; };
+		7EFF3FBFD0AD90CAFC7A1F2C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E582C6F5E4035EE7C2DC3A90 /* MainTabView.swift */; };
+		354230D3C11FF8F1E3CAFAA4 /* TaxIsLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3792F0A925B265300511B7B4 /* TaxIsLogo.swift */; };
+		0E744B9CA146B45CE430540F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F5214E43806F098D9911A96A /* Assets.xcassets */; };
+		4CE3E2FD818458059AA51D0B /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634EBD4AEA571622C480D0E0 /* SplashView.swift */; };
+		2E9903D9AFF1864711733A7F /* WorkerType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F1AD22EF11253A5C77FCE91 /* WorkerType.swift */; };
+		B3F3ADB7ACA511FABF1DBB5A /* OnboardingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BFDAF8F28C08A2C6E16F76 /* OnboardingStore.swift */; };
+		B25226EAF80EA08990A14965 /* WorkerTypeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E618FCE9D455402A88822F /* WorkerTypeSelectionView.swift */; };
+		3DA860BE26F2E96656C789D6 /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED26B76292C90E24D8B5117 /* OnboardingFlowView.swift */; };
+		34B5AF95CF1C5116E9169B5C /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B16A690686DE666695B7A57A /* HomeView.swift */; };
+		1CFB1ADEB8780128DA9CDEC9 /* DeductionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D647CEB6BEF52486BBEF7979 /* DeductionsView.swift */; };
+		21F6A0E27B85C12175C81903 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09463C267E51B2F50D89FD16 /* ProfileView.swift */; };
+		73689186E8B76EA84267E8D5 /* TaxInsightsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E40A8511BDC3FB7DC1A01BDC /* TaxInsightsService.swift */; };
+		9778E1713F6D4B1582501C4C /* VerktakiExpenseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 486574C674B648D594076C3B /* VerktakiExpenseStore.swift */; };
+		C1A2B3C4D5E6F7A8B9C0D1E3 /* TaxCalculationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C4D5E6F7A8B9C0D1E2 /* TaxCalculationEngine.swift */; };
+		A1B2C3D4E5F6A7B8C9D0E1F3 /* SalariedJobStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* SalariedJobStore.swift */; };
+		D1E2F3A4B5C6D7E8F9A0B1C3 /* VerktakiRevenueStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C6D7E8F9A0B1C2 /* VerktakiRevenueStore.swift */; };
+		F1A2B3C4D5E6F7A8B9C0D1E5 /* TermsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6F7A8B9C0D1E4 /* TermsView.swift */; };
+		AA11BB22CC33DD44EE55FF02 /* UserProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF01 /* UserProfileStore.swift */; };
+		BB22CC33DD44EE55FF66AA02 /* LaunasedlarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF66AA01 /* LaunasedlarView.swift */; };
+		CC33DD44EE55FF66AA77BB02 /* TekjurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC33DD44EE55FF66AA77BB01 /* TekjurView.swift */; };
+		DD44EE55FF66AA77BB88CC02 /* UtgjoldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD44EE55FF66AA77BB88CC01 /* UtgjoldView.swift */; };
+		EE55FF66AA77BB88CC99DD02 /* LocalizationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE55FF66AA77BB88CC99DD01 /* LocalizationManager.swift */; };
+		FF66AA77BB88CC99DDEE0002 /* FærslurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66AA77BB88CC99DDEE0001 /* FærslurView.swift */; };
+		AA77BB88CC99DDEE00FF1102 /* AkstursbokStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA77BB88CC99DDEE00FF1101 /* AkstursbokStore.swift */; };
+		BB88CC99DDEE0011AA220002 /* BlandadTekjurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88CC99DDEE0011AA220001 /* BlandadTekjurView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		735B3B31BD7AA2DE441E955D /* TaxIsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxIsApp.swift; sourceTree = "<group>"; };
+		CA4247E6A63BF303C51B69C1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A5FC7DA92DFAE47A897055AC /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		F672E84A30A75333EEA18E02 /* SupabaseSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseSession.swift; sourceTree = "<group>"; };
+		0B559B36F0729951E81A92FC /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
+		366B70243D6582D6EE397128 /* ReceiptExtractionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptExtractionService.swift; sourceTree = "<group>"; };
+		988FBBD3426E589954A8FBE2 /* TaxIsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxIsModels.swift; sourceTree = "<group>"; };
+		E26C187A559D6C9A6EB5E13C /* TransactionRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionRecord.swift; sourceTree = "<group>"; };
+		97F3385D7E45A13D03F96DB0 /* SupabaseTransactionRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseTransactionRepository.swift; sourceTree = "<group>"; };
+		A60A9AE67FD78C7CCC2F2E7E /* TaxIs.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TaxIs.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD6E8AFE161E507ECB355EB8 /* TaxIsTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxIsTheme.swift; sourceTree = "<group>"; };
+		3B955421F7221734364180F3 /* SupabaseAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseAuthService.swift; sourceTree = "<group>"; };
+		2CBF4BD96AD7F72D33222B55 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
+		EFD6B13A8820E00A9376C6B7 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		50F2B1D46DCBBD401C29688F /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
+		3A5B07C9159BD2AB1A217304 /* TransactionConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionConfirmationView.swift; sourceTree = "<group>"; };
+		F95A2DF638D845B4DAFB4B51 /* TransactionsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsListView.swift; sourceTree = "<group>"; };
+		E582C6F5E4035EE7C2DC3A90 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		3792F0A925B265300511B7B4 /* TaxIsLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxIsLogo.swift; sourceTree = "<group>"; };
+		F5214E43806F098D9911A96A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		634EBD4AEA571622C480D0E0 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		3F1AD22EF11253A5C77FCE91 /* WorkerType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkerType.swift; sourceTree = "<group>"; };
+		17BFDAF8F28C08A2C6E16F76 /* OnboardingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStore.swift; sourceTree = "<group>"; };
+		D6E618FCE9D455402A88822F /* WorkerTypeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkerTypeSelectionView.swift; sourceTree = "<group>"; };
+		3ED26B76292C90E24D8B5117 /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
+		B16A690686DE666695B7A57A /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		D647CEB6BEF52486BBEF7979 /* DeductionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeductionsView.swift; sourceTree = "<group>"; };
+		09463C267E51B2F50D89FD16 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		E40A8511BDC3FB7DC1A01BDC /* TaxInsightsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxInsightsService.swift; sourceTree = "<group>"; };
+		486574C674B648D594076C3B /* VerktakiExpenseStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerktakiExpenseStore.swift; sourceTree = "<group>"; };
+		C1A2B3C4D5E6F7A8B9C0D1E2 /* TaxCalculationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxCalculationEngine.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* SalariedJobStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SalariedJobStore.swift; sourceTree = "<group>"; };
+		D1E2F3A4B5C6D7E8F9A0B1C2 /* VerktakiRevenueStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerktakiRevenueStore.swift; sourceTree = "<group>"; };
+		F1A2B3C4D5E6F7A8B9C0D1E4 /* TermsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TermsView.swift; sourceTree = "<group>"; };
+		AA11BB22CC33DD44EE55FF01 /* UserProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileStore.swift; sourceTree = "<group>"; };
+		BB22CC33DD44EE55FF66AA01 /* LaunasedlarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunasedlarView.swift; sourceTree = "<group>"; };
+		CC33DD44EE55FF66AA77BB01 /* TekjurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TekjurView.swift; sourceTree = "<group>"; };
+		DD44EE55FF66AA77BB88CC01 /* UtgjoldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtgjoldView.swift; sourceTree = "<group>"; };
+		EE55FF66AA77BB88CC99DD01 /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
+		FF66AA77BB88CC99DDEE0001 /* FærslurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "F\U00e6rslurView.swift"; sourceTree = "<group>"; };
+		AA77BB88CC99DDEE00FF1101 /* AkstursbokStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AkstursbokStore.swift; sourceTree = "<group>"; };
+		BB88CC99DDEE0011AA220001 /* BlandadTekjurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlandadTekjurView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		64E6A9653BC29FA7580E0BF0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		180794107266A233632FC26B = {
+			isa = PBXGroup;
+			children = (
+				E860B031E1470634834E885A /* TaxIs */,
+				7EC8A5C85397376FE545544A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7EC8A5C85397376FE545544A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A60A9AE67FD78C7CCC2F2E7E /* TaxIs.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E860B031E1470634834E885A /* TaxIs */ = {
+			isa = PBXGroup;
+			children = (
+				735B3B31BD7AA2DE441E955D /* TaxIsApp.swift */,
+				CA4247E6A63BF303C51B69C1 /* ContentView.swift */,
+				A5FC7DA92DFAE47A897055AC /* KeychainHelper.swift */,
+				F672E84A30A75333EEA18E02 /* SupabaseSession.swift */,
+				0B559B36F0729951E81A92FC /* SupabaseConfig.swift */,
+				366B70243D6582D6EE397128 /* ReceiptExtractionService.swift */,
+				988FBBD3426E589954A8FBE2 /* TaxIsModels.swift */,
+				E26C187A559D6C9A6EB5E13C /* TransactionRecord.swift */,
+				97F3385D7E45A13D03F96DB0 /* SupabaseTransactionRepository.swift */,
+				BD6E8AFE161E507ECB355EB8 /* TaxIsTheme.swift */,
+				3B955421F7221734364180F3 /* SupabaseAuthService.swift */,
+				2CBF4BD96AD7F72D33222B55 /* SessionStore.swift */,
+				EFD6B13A8820E00A9376C6B7 /* AuthView.swift */,
+				50F2B1D46DCBBD401C29688F /* CaptureView.swift */,
+				3A5B07C9159BD2AB1A217304 /* TransactionConfirmationView.swift */,
+				F95A2DF638D845B4DAFB4B51 /* TransactionsListView.swift */,
+				E582C6F5E4035EE7C2DC3A90 /* MainTabView.swift */,
+				3792F0A925B265300511B7B4 /* TaxIsLogo.swift */,
+				F5214E43806F098D9911A96A /* Assets.xcassets */,
+				634EBD4AEA571622C480D0E0 /* SplashView.swift */,
+				3F1AD22EF11253A5C77FCE91 /* WorkerType.swift */,
+				17BFDAF8F28C08A2C6E16F76 /* OnboardingStore.swift */,
+				D6E618FCE9D455402A88822F /* WorkerTypeSelectionView.swift */,
+				3ED26B76292C90E24D8B5117 /* OnboardingFlowView.swift */,
+				B16A690686DE666695B7A57A /* HomeView.swift */,
+				D647CEB6BEF52486BBEF7979 /* DeductionsView.swift */,
+				09463C267E51B2F50D89FD16 /* ProfileView.swift */,
+				E40A8511BDC3FB7DC1A01BDC /* TaxInsightsService.swift */,
+				486574C674B648D594076C3B /* VerktakiExpenseStore.swift */,
+				C1A2B3C4D5E6F7A8B9C0D1E2 /* TaxCalculationEngine.swift */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* SalariedJobStore.swift */,
+				D1E2F3A4B5C6D7E8F9A0B1C2 /* VerktakiRevenueStore.swift */,
+				F1A2B3C4D5E6F7A8B9C0D1E4 /* TermsView.swift */,
+				AA11BB22CC33DD44EE55FF01 /* UserProfileStore.swift */,
+				BB22CC33DD44EE55FF66AA01 /* LaunasedlarView.swift */,
+				CC33DD44EE55FF66AA77BB01 /* TekjurView.swift */,
+				DD44EE55FF66AA77BB88CC01 /* UtgjoldView.swift */,
+				EE55FF66AA77BB88CC99DD01 /* LocalizationManager.swift */,
+				FF66AA77BB88CC99DDEE0001 /* FærslurView.swift */,
+				AA77BB88CC99DDEE00FF1101 /* AkstursbokStore.swift */,
+				BB88CC99DDEE0011AA220001 /* BlandadTekjurView.swift */,
+			);
+			path = TaxIs;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CCC84053E65648E03EC69BFE /* TaxIs */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CDFC95AC854652BF42F5BCB7 /* Build configuration list for PBXNativeTarget "TaxIs" */;
+			buildPhases = (
+				9716A4304DF79DEFDF7D68FC /* Sources */,
+				64E6A9653BC29FA7580E0BF0 /* Frameworks */,
+				EC354CA7D345E7A7079549C6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TaxIs;
+			productName = TaxIs;
+			productReference = A60A9AE67FD78C7CCC2F2E7E /* TaxIs.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E21D8900E23E1652550088B6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					CCC84053E65648E03EC69BFE = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = A5232E55D800E2BF2D21C376 /* Build configuration list for PBXProject "TaxIs" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 180794107266A233632FC26B;
+			productRefGroup = 7EC8A5C85397376FE545544A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CCC84053E65648E03EC69BFE /* TaxIs */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		EC354CA7D345E7A7079549C6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E744B9CA146B45CE430540F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9716A4304DF79DEFDF7D68FC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7042DB561B15BA118198EA4C /* TaxIsApp.swift in Sources */,
+				AD1CED0952CC6C7353246554 /* ContentView.swift in Sources */,
+				180E9AD8CBEFB57EE4D05088 /* KeychainHelper.swift in Sources */,
+				EA3C4D81D6EAC5FB73ED21A6 /* SupabaseSession.swift in Sources */,
+				E8E0C262A51F68FCE4A9A535 /* SupabaseConfig.swift in Sources */,
+				2BBE6EF1693038D5987904C6 /* ReceiptExtractionService.swift in Sources */,
+				DFE545EE505DDECD1FD346A5 /* TaxIsModels.swift in Sources */,
+				12CDC15B2ED8C2BC03299E31 /* TransactionRecord.swift in Sources */,
+				A2378A7A0903F54B985A74DE /* SupabaseTransactionRepository.swift in Sources */,
+				C07860D4DA67281AF0E33321 /* TaxIsTheme.swift in Sources */,
+				26545CE46009DE8B88AC2F98 /* SupabaseAuthService.swift in Sources */,
+				37A2B31939273926627C1ED2 /* SessionStore.swift in Sources */,
+				061387164C8B951A208E5DEB /* AuthView.swift in Sources */,
+				D10E916CD2829C25686D4687 /* CaptureView.swift in Sources */,
+				DCB508D4004DDE3CB07EA6A4 /* TransactionConfirmationView.swift in Sources */,
+				99EE2C162A3827F647A908F5 /* TransactionsListView.swift in Sources */,
+				7EFF3FBFD0AD90CAFC7A1F2C /* MainTabView.swift in Sources */,
+				354230D3C11FF8F1E3CAFAA4 /* TaxIsLogo.swift in Sources */,
+				4CE3E2FD818458059AA51D0B /* SplashView.swift in Sources */,
+				2E9903D9AFF1864711733A7F /* WorkerType.swift in Sources */,
+				B3F3ADB7ACA511FABF1DBB5A /* OnboardingStore.swift in Sources */,
+				B25226EAF80EA08990A14965 /* WorkerTypeSelectionView.swift in Sources */,
+				3DA860BE26F2E96656C789D6 /* OnboardingFlowView.swift in Sources */,
+				34B5AF95CF1C5116E9169B5C /* HomeView.swift in Sources */,
+				1CFB1ADEB8780128DA9CDEC9 /* DeductionsView.swift in Sources */,
+				21F6A0E27B85C12175C81903 /* ProfileView.swift in Sources */,
+				73689186E8B76EA84267E8D5 /* TaxInsightsService.swift in Sources */,
+				9778E1713F6D4B1582501C4C /* VerktakiExpenseStore.swift in Sources */,
+				C1A2B3C4D5E6F7A8B9C0D1E3 /* TaxCalculationEngine.swift in Sources */,
+				A1B2C3D4E5F6A7B8C9D0E1F3 /* SalariedJobStore.swift in Sources */,
+				D1E2F3A4B5C6D7E8F9A0B1C3 /* VerktakiRevenueStore.swift in Sources */,
+				F1A2B3C4D5E6F7A8B9C0D1E5 /* TermsView.swift in Sources */,
+				AA11BB22CC33DD44EE55FF02 /* UserProfileStore.swift in Sources */,
+				BB22CC33DD44EE55FF66AA02 /* LaunasedlarView.swift in Sources */,
+				CC33DD44EE55FF66AA77BB02 /* TekjurView.swift in Sources */,
+				DD44EE55FF66AA77BB88CC02 /* UtgjoldView.swift in Sources */,
+				EE55FF66AA77BB88CC99DD02 /* LocalizationManager.swift in Sources */,
+				FF66AA77BB88CC99DDEE0002 /* FærslurView.swift in Sources */,
+				AA77BB88CC99DDEE00FF1102 /* AkstursbokStore.swift in Sources */,
+				BB88CC99DDEE0011AA220002 /* BlandadTekjurView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		51772308DA26161E1DECA05D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		8B116D0147B18D4132C325B5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		2B5734FE6EC418000099D81C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TaxIs/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.taxis.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D99DCC115E3586DC8BD81D64 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TaxIs/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.taxis.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A5232E55D800E2BF2D21C376 /* Build configuration list for PBXProject "TaxIs" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				51772308DA26161E1DECA05D /* Debug */,
+				8B116D0147B18D4132C325B5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CDFC95AC854652BF42F5BCB7 /* Build configuration list for PBXNativeTarget "TaxIs" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B5734FE6EC418000099D81C /* Debug */,
+				D99DCC115E3586DC8BD81D64 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E21D8900E23E1652550088B6 /* Project object */;
+}
