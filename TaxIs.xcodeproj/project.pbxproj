@@ -48,6 +48,8 @@
 		FF66AA77BB88CC99DDEE0002 /* FærslurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66AA77BB88CC99DDEE0001 /* FærslurView.swift */; };
 		AA77BB88CC99DDEE00FF1102 /* AkstursbokStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA77BB88CC99DDEE00FF1101 /* AkstursbokStore.swift */; };
 		BB88CC99DDEE0011AA220002 /* BlandadTekjurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB88CC99DDEE0011AA220001 /* BlandadTekjurView.swift */; };
+		CC99DDEE0011AA2200BB3301 /* TaxLedgerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99DDEE0011AA2200BB3300 /* TaxLedgerStore.swift */; };
+		DD00EEFF1122BB3300CC4402 /* HeimagistingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00EEFF1122BB3300CC4401 /* HeimagistingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -93,6 +95,8 @@
 		FF66AA77BB88CC99DDEE0001 /* FærslurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "F\U00e6rslurView.swift"; sourceTree = "<group>"; };
 		AA77BB88CC99DDEE00FF1101 /* AkstursbokStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AkstursbokStore.swift; sourceTree = "<group>"; };
 		BB88CC99DDEE0011AA220001 /* BlandadTekjurView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlandadTekjurView.swift; sourceTree = "<group>"; };
+		CC99DDEE0011AA2200BB3300 /* TaxLedgerStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxLedgerStore.swift; sourceTree = "<group>"; };
+		DD00EEFF1122BB3300CC4401 /* HeimagistingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeimagistingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -166,6 +170,8 @@
 				FF66AA77BB88CC99DDEE0001 /* FærslurView.swift */,
 				AA77BB88CC99DDEE00FF1101 /* AkstursbokStore.swift */,
 				BB88CC99DDEE0011AA220001 /* BlandadTekjurView.swift */,
+				CC99DDEE0011AA2200BB3300 /* TaxLedgerStore.swift */,
+				DD00EEFF1122BB3300CC4401 /* HeimagistingView.swift */,
 			);
 			path = TaxIs;
 			sourceTree = "<group>";
@@ -279,6 +285,8 @@
 				FF66AA77BB88CC99DDEE0002 /* FærslurView.swift in Sources */,
 				AA77BB88CC99DDEE00FF1102 /* AkstursbokStore.swift in Sources */,
 				BB88CC99DDEE0011AA220002 /* BlandadTekjurView.swift in Sources */,
+				CC99DDEE0011AA2200BB3301 /* TaxLedgerStore.swift in Sources */,
+				DD00EEFF1122BB3300CC4402 /* HeimagistingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

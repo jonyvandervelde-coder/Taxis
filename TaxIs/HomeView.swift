@@ -44,7 +44,6 @@ struct HomeView: View {
     @EnvironmentObject private var revenueStore: VerktakiRevenueStore
     @EnvironmentObject private var expenseStore: VerktakiExpenseStore
     @EnvironmentObject private var profileStore: UserProfileStore
-
     @State private var selectedNotification: DashboardNotification?
     @State private var isLoading = false
     @State private var loadError: String?
@@ -53,7 +52,6 @@ struct HomeView: View {
 
     private var isSalaried: Bool   { onboarding.workerTypes.contains(.employee) }
     private var isContractor: Bool { onboarding.workerTypes.contains(.contractor) }
-    private var isHybrid: Bool     { isSalaried && isContractor }
 
     var body: some View {
         ZStack {
@@ -462,6 +460,12 @@ private struct NotificationDetailSheet: View {
 }
 
 // MARK: - Shared ISK formatter (used by DeductionsView too)
+
+func formatISKShort(_ value: Double) -> String {
+    if value >= 1_000_000 { return String(format: "%.1fM", value / 1_000_000) }
+    if value >= 1_000     { return String(format: "%.0fk", value / 1_000) }
+    return "\(Int(value))"
+}
 
 func formatISK(_ value: Decimal) -> String {
     let f = NumberFormatter()

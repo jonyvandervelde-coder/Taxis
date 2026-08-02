@@ -114,6 +114,15 @@ struct AuthView: View {
                             .foregroundStyle(TaxIsTheme.secondary)
                     }
 
+                    #if DEBUG
+                    Button { session.debugBypassSignIn() } label: {
+                        Text("DEBUG: Sleppa innskráningu")
+                            .font(.caption)
+                            .foregroundStyle(TaxIsTheme.muted)
+                    }
+                    .padding(.top, 4)
+                    #endif
+
                     Spacer(minLength: 40)
                 }
                 .padding(.horizontal, 24)

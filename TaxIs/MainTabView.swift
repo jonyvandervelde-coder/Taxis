@@ -1,14 +1,3 @@
-//
-//  MainTabView.swift
-//  TaxÍs
-//
-//  Custom tab bar with Heim elevated in the center (index 2).
-//  Layout per worker type (always 5 tabs):
-//    launþegi  → Launaseðlar | Útgjöld | HEIM | Færsla | Stillingar
-//    verktaki  → Tekjur      | Útgjöld | HEIM | Færsla | Stillingar
-//    blandað   → Tekjur/Laun | Útgjöld | HEIM | Færsla | Stillingar
-//
-
 import SwiftUI
 
 struct MainTabView: View {
@@ -17,9 +6,11 @@ struct MainTabView: View {
     @EnvironmentObject private var lm: LocalizationManager
     @State private var selectedTab: Int = 2
 
-    private var isSalaried:   Bool { onboarding.workerTypes.contains(.employee) }
-    private var isContractor: Bool { onboarding.workerTypes.contains(.contractor) }
-    private var isBlandad:    Bool { isSalaried && isContractor }
+    private var isSalaried:     Bool { onboarding.workerTypes.contains(.employee) }
+    private var isContractor:   Bool { onboarding.workerTypes.contains(.contractor) }
+    private var isHeimagisting: Bool { onboarding.workerTypes.contains(.heimagisting) }
+    private var isBlandad:      Bool { isSalaried && isContractor }
+    private var hasOtherIncome: Bool { isSalaried || isContractor }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -36,7 +27,7 @@ struct MainTabView: View {
     private var currentPage: some View {
         switch selectedTab {
         case 0: leftView1
-        case 1: UtgjoldView()
+        case 1: leftView2
         case 2: HomeView(onboarding: onboarding)
         case 3: FærslurView()
         default: ProfileView(session: session, onboarding: onboarding)
@@ -44,23 +35,48 @@ struct MainTabView: View {
     }
 
     @ViewBuilder private var leftView1: some View {
-        if isBlandad       { BlandadTekjurView() }
-        else if isSalaried { LaunasedlarView() }
-        else               { TekjurView() }
+        if isHeimagisting && !hasOtherIncome {
+            HeimagistingView()
+        } else if isBlandad {
+            BlandadTekjurView()
+        } else if isSalaried {
+            LaunasedlarView()
+        } else if isContractor {
+            TekjurView()
+        } else {
+            UtgjoldView()
+        }
+    }
+
+    @ViewBuilder private var leftView2: some View {
+        if isHeimagisting && hasOtherIncome {
+            HeimagistingView()
+        } else {
+            UtgjoldView()
+        }
     }
 
     private var tabConfig: TabConfig {
         let left1: TabDef
-        if isBlandad {
+        if isHeimagisting && !hasOtherIncome {
+            left1 = TabDef(icon: "house.fill", label: "Heimagisting")
+        } else if isBlandad {
             left1 = TabDef(icon: "briefcase.fill", label: lm.t(.income))
         } else if isSalaried {
             left1 = TabDef(icon: "doc.text", label: lm.t(.tabPayslips))
-        } else {
+        } else if isContractor {
             left1 = TabDef(icon: "chart.line.uptrend.xyaxis", label: lm.t(.tabRevenue))
+        } else {
+            left1 = TabDef(icon: "bag", label: lm.t(.tabExpenses))
         }
+
+        let left2: TabDef = isHeimagisting && hasOtherIncome
+            ? TabDef(icon: "house.fill", label: "Heimagisting")
+            : TabDef(icon: "bag",        label: lm.t(.tabExpenses))
+
         return TabConfig(
             left1:  left1,
-            left2:  TabDef(icon: "bag",               label: lm.t(.tabExpenses)),
+            left2:  left2,
             center: TabDef(icon: "house.fill",         label: lm.t(.tabHome)),
             right1: TabDef(icon: "lightbulb",          label: lm.t(.tabInsights)),
             right2: TabDef(icon: "person.crop.circle", label: lm.t(.tabSettings))

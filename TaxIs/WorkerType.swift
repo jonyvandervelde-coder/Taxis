@@ -1,30 +1,35 @@
-//
-//  WorkerType.swift
-//  TaxÍs
-//
-//  Icelandic tax filing splits into two worker profiles with different
-//  income-reporting paths: launþegi (employee, reports via payslips) and
-//  verktaki (self-employed contractor, reports income manually). A user
-//  can be either, or both at once (e.g. a day job plus side contracting).
-//
-
 import Foundation
 
 enum WorkerType: String, CaseIterable, Codable {
-    case employee = "launthegi"
-    case contractor = "verktaki"
+    case employee     = "launthegi"
+    case contractor   = "verktaki"
+    case heimagisting = "heimagisting"
+    case other        = "other"
 
     var displayName: String {
         switch self {
-        case .employee: return "Launþegi"
-        case .contractor: return "Verktaki"
+        case .employee:     return "Launþegi"
+        case .contractor:   return "Verktaki"
+        case .heimagisting: return "Heimagisting"
+        case .other:        return "Önnur"
         }
     }
 
     var subtitle: String {
         switch self {
-        case .employee: return "I receive payslips from an employer"
-        case .contractor: return "I invoice clients as self-employed"
+        case .employee:     return "Ég fæ launaseðla frá vinnuveitanda"
+        case .contractor:   return "Ég geri reikninga sem sjálfstætt starfandi"
+        case .heimagisting: return "Ég leigi út íbúð eða herbergi á Airbnb o.fl."
+        case .other:        return "Aðrar tekjur eða á ekki við"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .employee:     return "doc.text.fill"
+        case .contractor:   return "briefcase.fill"
+        case .heimagisting: return "house.fill"
+        case .other:        return "ellipsis.circle.fill"
         }
     }
 }
