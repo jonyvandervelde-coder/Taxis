@@ -6,17 +6,16 @@ struct MainTabView: View {
     @EnvironmentObject private var lm: LocalizationManager
     @State private var selectedTab: Int = 2
 
-    private var isSalaried:     Bool { onboarding.workerTypes.contains(.employee) }
-    private var isContractor:   Bool { onboarding.workerTypes.contains(.contractor) }
-    private var isHeimagisting: Bool { onboarding.workerTypes.contains(.heimagisting) }
-    private var isBlandad:      Bool { isSalaried && isContractor }
-    private var hasOtherIncome: Bool { isSalaried || isContractor }
+    private var isSalaried:        Bool { onboarding.workerTypes.contains(.employee) }
+    private var isContractor:      Bool { onboarding.workerTypes.contains(.contractor) }
+    private var isHeimagisting:    Bool { onboarding.workerTypes.contains(.heimagisting) }
+    private var isBlandad:         Bool { isSalaried && isContractor }
+    private var hasOtherIncome:    Bool { isSalaried || isContractor }
+    private var isHeimagistingOnly: Bool { isHeimagisting && !isSalaried && !isContractor }
 
     // Compact = single-type worker who needs only one feature tab
-    // (launþegi-only or heimagisting-only — verktaki-only keeps útgjöld)
     private var isCompact: Bool {
-        (isSalaried && !isContractor && !isHeimagisting) ||
-        (isHeimagisting && !isSalaried && !isContractor)
+        (isSalaried && !isContractor && !isHeimagisting) || isHeimagistingOnly
     }
 
     private var centerTabIndex: Int { isCompact ? 1 : 2 }
@@ -37,7 +36,13 @@ struct MainTabView: View {
 
     @ViewBuilder
     private var currentPage: some View {
-        if isCompact {
+        if isHeimagistingOnly {
+            switch selectedTab {
+            case 0:  HeimagistingView()
+            case 2:  ProfileView(session: session, onboarding: onboarding)
+            default: HomeView(onboarding: onboarding)
+            }
+        } else if isCompact {
             switch selectedTab {
             case 0:  compactFeatureView
             case 1:  HomeView(onboarding: onboarding)
@@ -73,10 +78,17 @@ struct MainTabView: View {
     }
 
     private var tabConfig: TabConfig {
+        if isHeimagistingOnly {
+            return .compact3(
+                left:   TabDef(icon: "bed.double.fill",      label: "Heimagisting"),
+                center: TabDef(icon: "house.fill",           label: lm.t(.tabHome)),
+                right:  TabDef(icon: "person.crop.circle",  label: lm.t(.tabSettings))
+            )
+        }
         if isCompact {
             let feature: TabDef = isHeimagisting
-                ? TabDef(icon: "house.fill", label: "Heimagisting")
-                : TabDef(icon: "doc.text",   label: lm.t(.tabPayslips))
+                ? TabDef(icon: "bed.double.fill", label: "Heimagisting")
+                : TabDef(icon: "doc.text",        label: lm.t(.tabPayslips))
             return .compact(
                 feature: feature,
                 center:  TabDef(icon: "house.fill",         label: lm.t(.tabHome)),
@@ -123,6 +135,9 @@ struct TabConfig {
 
     static func standard(_ l1: TabDef, _ l2: TabDef, _ c: TabDef, _ r1: TabDef, _ r2: TabDef) -> TabConfig {
         TabConfig(items: [l1, l2, c, r1, r2], centerIndex: 2)
+    }
+    static func compact3(left: TabDef, center: TabDef, right: TabDef) -> TabConfig {
+        TabConfig(items: [left, center, right], centerIndex: 1)
     }
     static func compact(feature: TabDef, center: TabDef, right1: TabDef, right2: TabDef) -> TabConfig {
         TabConfig(items: [feature, center, right1, right2], centerIndex: 1)

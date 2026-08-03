@@ -61,27 +61,32 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     header
-                    overviewCard
 
-                    Rectangle().fill(TaxIsTheme.border).frame(height: 1).padding(.vertical, 4)
-
-                    Text("Innsýn")
-                        .font(.headline)
-                        .foregroundStyle(TaxIsTheme.text)
-
-                    if isLoading {
-                        loadingCard
-                    } else if let loadError {
-                        errorCard(loadError)
-                    } else if let settlement {
-                        SettlementHeroCard(settlement: settlement)
-                        if !insights.isEmpty {
-                            ForEach(insights) { n in
-                                NotificationRow(notification: n) { selectedNotification = n }
-                            }
-                        }
+                    if isHeimagisting && !isSalaried && !isContractor {
+                        heimagistingDashboard
                     } else {
-                        aiEmptyCard
+                        overviewCard
+
+                        Rectangle().fill(TaxIsTheme.border).frame(height: 1).padding(.vertical, 4)
+
+                        Text("Innsýn")
+                            .font(.headline)
+                            .foregroundStyle(TaxIsTheme.text)
+
+                        if isLoading {
+                            loadingCard
+                        } else if let loadError {
+                            errorCard(loadError)
+                        } else if let settlement {
+                            SettlementHeroCard(settlement: settlement)
+                            if !insights.isEmpty {
+                                ForEach(insights) { n in
+                                    NotificationRow(notification: n) { selectedNotification = n }
+                                }
+                            }
+                        } else {
+                            aiEmptyCard
+                        }
                     }
                 }
                 .padding(18)
@@ -127,6 +132,137 @@ struct HomeView: View {
             }
             .frame(width: 38, height: 38)
         }
+    }
+
+    // MARK: - Heimagisting-only dashboard
+
+    private var heimagistingDashboard: some View {
+        let m = ledgerStore.metrics
+        let calc = HeimagistingCalc(
+            grossTotal: m.grossTotal,
+            nightsUsed: m.nightsUsed,
+            cliffTriggered: m.cliffTriggered
+        )
+        return Group {
+            // ÞAKMÖRK card
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text("ÞAKMÖRK 2026")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(TaxIsTheme.muted)
+                    Spacer()
+                    let triggered = calc.cliffTriggered
+                    Text(triggered ? "ÞAKI NÁÐ" : "Öruggt")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(triggered ? TaxIsTheme.redText : TaxIsTheme.mint)
+                        .padding(.horizontal, 9).padding(.vertical, 3)
+                        .background((triggered ? TaxIsTheme.redText : TaxIsTheme.mint).opacity(0.1))
+                        .clipShape(Capsule())
+                }
+                heimProgressRow(icon: "moon.stars.fill",
+                                label: "Nætur", detail: "\(calc.nightsUsed) af 90",
+                                remaining: "\(calc.nightsRemaining) eftir",
+                                fraction: calc.nightsFraction, warn: calc.nightsFraction >= 0.8)
+                heimProgressRow(icon: "banknote",
+                                label: "Tekjur", detail: fmtShortH(calc.grossTotal) + " af 2M",
+                                remaining: fmtShortH(m.allowanceRemaining) + " eftir",
+                                fraction: calc.incomeFraction, warn: calc.incomeFraction >= 0.8)
+                if calc.cliffTriggered {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(TaxIsTheme.redText).font(.caption)
+                        Text("Þak náð — tekjur renna inn í persónulega skattstiga.")
+                            .font(.caption).foregroundStyle(TaxIsTheme.muted)
+                    }
+                    .padding(.top, 2)
+                }
+            }
+            .padding(16)
+            .background(TaxIsTheme.card)
+            .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card))
+            .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card)
+                .strokeBorder(calc.cliffTriggered ? TaxIsTheme.redText.opacity(0.5) : TaxIsTheme.border, lineWidth: 1))
+
+            // SKATTAÚTREIKNINGUR card
+            VStack(alignment: .leading, spacing: 0) {
+                Text("SKATTAÚTREIKNINGUR")
+                    .font(.caption.weight(.semibold)).foregroundStyle(TaxIsTheme.muted)
+                    .padding(.horizontal, 15).padding(.top, 13).padding(.bottom, 10)
+                heimCalcRow(label: "Heildartekjur", value: fmtISKH(calc.grossTotal), divider: true)
+                heimCalcRow(label: "Gistináttaskattur (\(calc.nightsUsed) × 800 kr.)",
+                            value: "− \(fmtISKH(calc.lodgingTax))", divider: true)
+                if let reserve = calc.capitalTaxReserve {
+                    heimCalcRow(label: "22% fjármagnstekjuskattur",
+                                value: "− \(fmtISKH(reserve))", divider: true)
+                } else {
+                    HStack {
+                        Text("Persónulegur skattstigi").font(.subheadline).foregroundStyle(TaxIsTheme.muted)
+                        Spacer()
+                        Text("Þak náð").font(.subheadline.weight(.medium)).foregroundStyle(TaxIsTheme.redText)
+                    }
+                    .padding(.horizontal, 15).padding(.vertical, 10)
+                    Divider().background(TaxIsTheme.border)
+                }
+                HStack {
+                    Text("Leggja til hliðar").font(.subheadline.weight(.bold)).foregroundStyle(TaxIsTheme.text)
+                    Spacer()
+                    Text(fmtISKH(calc.totalSetAside)).font(.subheadline.weight(.bold)).foregroundStyle(TaxIsTheme.mint)
+                }
+                .padding(.horizontal, 15).padding(.vertical, 12)
+            }
+            .background(TaxIsTheme.card)
+            .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card))
+            .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card)
+                .strokeBorder(TaxIsTheme.border, lineWidth: 1))
+        }
+    }
+
+    private func heimProgressRow(icon: String, label: String, detail: String, remaining: String, fraction: Double, warn: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: icon).font(.caption2).foregroundStyle(warn ? TaxIsTheme.redText : TaxIsTheme.mint)
+                Text("\(label): \(detail)").font(.caption).foregroundStyle(TaxIsTheme.muted)
+                Spacer()
+                Text(remaining).font(.caption.weight(.semibold)).foregroundStyle(warn ? TaxIsTheme.redText : TaxIsTheme.text)
+            }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 5).fill(TaxIsTheme.border.opacity(0.5))
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(warn ? TaxIsTheme.redText : TaxIsTheme.mint)
+                        .frame(width: geo.size.width * CGFloat(min(fraction, 1.0)))
+                        .animation(.easeInOut(duration: 0.4), value: fraction)
+                }
+            }
+            .frame(height: 6)
+        }
+    }
+
+    private func heimCalcRow(label: String, value: String, divider: Bool) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(label).font(.subheadline).foregroundStyle(TaxIsTheme.muted)
+                Spacer()
+                Text(value).font(.subheadline.weight(.medium)).foregroundStyle(TaxIsTheme.text)
+            }
+            .padding(.horizontal, 15).padding(.vertical, 10)
+            if divider { Divider().background(TaxIsTheme.border) }
+        }
+    }
+
+    private func fmtISKH(_ v: Double) -> String {
+        let f = NumberFormatter()
+        f.numberStyle = .decimal
+        f.groupingSeparator = "."
+        f.decimalSeparator = ","
+        f.maximumFractionDigits = 0
+        return "\(f.string(from: NSNumber(value: v)) ?? "\(Int(v))") kr."
+    }
+
+    private func fmtShortH(_ v: Double) -> String {
+        if v >= 1_000_000 { return String(format: "%.1fM", v / 1_000_000) }
+        if v >= 1_000     { return String(format: "%.0fk", v / 1_000) }
+        return "\(Int(v))"
     }
 
     // MARK: - Overview card
@@ -284,6 +420,9 @@ struct HomeView: View {
     }
 
     private func loadInsights() async {
+        // No session token → debug bypass or not signed in. Show empty prompt, skip silently.
+        guard (try? SupabaseSession.currentAccessToken()) != nil else { return }
+
         isLoading = true
         loadError = nil
         defer { isLoading = false }
@@ -350,8 +489,8 @@ private struct SettlementHeroCard: View {
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(TaxIsTheme.card)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(TaxIsTheme.border, lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card))
+        .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card).strokeBorder(TaxIsTheme.border, lineWidth: 1))
     }
 }
 
@@ -460,7 +599,7 @@ private struct NotificationDetailSheet: View {
                         }
                     }
                     .padding(12)
-                    .background(Color.white.opacity(0.05))
+                    .background(TaxIsTheme.inputBg)
                     .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card))
                     .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card).strokeBorder(TaxIsTheme.border, lineWidth: 1))
                 }

@@ -28,19 +28,11 @@ struct ContentView: View {
     @StateObject private var ledgerStore    = TaxLedgerStore.shared
     @State private var showSplash = true
 
-    private var isDebugMode: Bool {
-        #if DEBUG
-        return true
-        #else
-        return false
-        #endif
-    }
-
     var body: some View {
         ZStack {
             if !onboarding.termsAccepted {
                 TermsView { onboarding.acceptTerms() }
-            } else if session.isSignedIn || isDebugMode {
+            } else if session.isSignedIn {
                 if onboarding.hasCompletedOnboarding {
                     MainTabView(session: session, onboarding: onboarding)
                 } else {

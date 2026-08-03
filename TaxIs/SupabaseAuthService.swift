@@ -191,7 +191,8 @@ final class SupabaseAuthService: NSObject {
         }
 
         guard let accessToken = json["access_token"] as? String else { return false }
-        try SupabaseSession.store(accessToken: accessToken)
+        let refreshToken = json["refresh_token"] as? String
+        try SupabaseSession.store(accessToken: accessToken, refreshToken: refreshToken)
 
         if let userDict = json["user"] as? [String: Any],
            let email = userDict["email"] as? String {

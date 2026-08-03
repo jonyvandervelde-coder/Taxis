@@ -114,15 +114,6 @@ struct AuthView: View {
                             .foregroundStyle(TaxIsTheme.secondary)
                     }
 
-                    #if DEBUG
-                    Button { session.debugBypassSignIn() } label: {
-                        Text("DEBUG: Sleppa innskráningu")
-                            .font(.caption)
-                            .foregroundStyle(TaxIsTheme.muted)
-                    }
-                    .padding(.top, 4)
-                    #endif
-
                     Spacer(minLength: 40)
                 }
                 .padding(.horizontal, 24)
@@ -192,7 +183,7 @@ struct AuthView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 50)
-            .background(Color.white.opacity(0.08))
+            .background(TaxIsTheme.inputBg)
             .foregroundStyle(TaxIsTheme.text)
             .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control))
             .overlay(
@@ -267,7 +258,7 @@ private extension View {
             .font(.body)
             .foregroundStyle(TaxIsTheme.text)
             .padding(14)
-            .background(Color.white.opacity(0.06))
+            .background(TaxIsTheme.inputBg)
             .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control))
             .overlay(
                 RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control)

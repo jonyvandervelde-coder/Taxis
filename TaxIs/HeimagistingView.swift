@@ -55,8 +55,6 @@ struct HeimagistingView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     pageHeader
-                    cliffTrackerCard
-                    taxReserveCard
                     calendarCard
                     staysSection
                 }
@@ -168,7 +166,7 @@ struct HeimagistingView: View {
             }
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 5).fill(TaxIsTheme.bg)
+                    RoundedRectangle(cornerRadius: 5).fill(TaxIsTheme.border.opacity(0.5))
                     RoundedRectangle(cornerRadius: 5)
                         .fill(warn ? TaxIsTheme.redText : TaxIsTheme.mint)
                         .frame(width: geo.size.width * CGFloat(min(fraction, 1.0)))
@@ -493,6 +491,7 @@ struct AddStaySheet: View {
                 saveBtn
             }
         }
+        .onAppear { store.saveError = nil }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
@@ -513,7 +512,7 @@ struct AddStaySheet: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Innritun").font(.caption.weight(.medium)).foregroundStyle(TaxIsTheme.muted)
                     DatePicker("", selection: $checkIn, displayedComponents: .date)
-                        .labelsHidden().colorScheme(.dark)
+                        .labelsHidden()
                         .onChange(of: checkIn) {
                             if checkOut <= checkIn {
                                 checkOut = Calendar.current.date(byAdding: .day, value: 1, to: checkIn)!
@@ -526,7 +525,7 @@ struct AddStaySheet: View {
                     DatePicker("", selection: $checkOut,
                                in: Calendar.current.date(byAdding: .day, value: 1, to: checkIn)!...,
                                displayedComponents: .date)
-                        .labelsHidden().colorScheme(.dark)
+                        .labelsHidden()
                 }
             }
             .padding(14)
@@ -572,7 +571,7 @@ struct AddStaySheet: View {
                 .keyboardType(.decimalPad)
                 .font(.body).foregroundStyle(TaxIsTheme.text)
                 .padding(12)
-                .background(Color.white.opacity(0.06))
+                .background(TaxIsTheme.inputBg)
                 .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control))
                 .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control)
                     .strokeBorder(TaxIsTheme.borderStrong, lineWidth: 1))
@@ -585,7 +584,7 @@ struct AddStaySheet: View {
             TextField("t.d. Airbnb, sumarleiga…", text: $note)
                 .font(.body).foregroundStyle(TaxIsTheme.text)
                 .padding(12)
-                .background(Color.white.opacity(0.06))
+                .background(TaxIsTheme.inputBg)
                 .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control))
                 .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control)
                     .strokeBorder(TaxIsTheme.borderStrong, lineWidth: 1))

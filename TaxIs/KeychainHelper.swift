@@ -41,18 +41,18 @@ final class KeychainHelper {
     }
 
     func save(_ value: String, forAccount account: String) throws {
+        #if targetEnvironment(simulator)
+        UserDefaults.standard.set(value, forKey: udKey(account))
+        #else
         guard let data = value.data(using: .utf8) else {
             throw KeychainError.dataConversionFailed
         }
-
-        // Remove any existing item first so this is a clean upsert.
         let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account
         ]
         SecItemDelete(deleteQuery as CFDictionary)
-
         let addQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -60,14 +60,15 @@ final class KeychainHelper {
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         ]
-
         let status = SecItemAdd(addQuery as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw KeychainError.unexpectedStatus(status)
-        }
+        guard status == errSecSuccess else { throw KeychainError.unexpectedStatus(status) }
+        #endif
     }
 
     func read(forAccount account: String) throws -> String? {
+        #if targetEnvironment(simulator)
+        return UserDefaults.standard.string(forKey: udKey(account))
+        #else
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -75,10 +76,8 @@ final class KeychainHelper {
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
-
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
-
         switch status {
         case errSecSuccess:
             guard let data = result as? Data, let value = String(data: data, encoding: .utf8) else {
@@ -90,9 +89,13 @@ final class KeychainHelper {
         default:
             throw KeychainError.unexpectedStatus(status)
         }
+        #endif
     }
 
     func delete(forAccount account: String) throws {
+        #if targetEnvironment(simulator)
+        UserDefaults.standard.removeObject(forKey: udKey(account))
+        #else
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -102,5 +105,8 @@ final class KeychainHelper {
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw KeychainError.unexpectedStatus(status)
         }
+        #endif
     }
+
+    private func udKey(_ account: String) -> String { "__keychain__\(service)__\(account)" }
 }

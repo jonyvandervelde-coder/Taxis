@@ -17,6 +17,7 @@ struct ProfileView: View {
     @ObservedObject var onboarding: OnboardingStore
     @EnvironmentObject var profileStore: UserProfileStore
     @EnvironmentObject var lm: LocalizationManager
+    @AppStorage("taxis.themePreference") private var themePreference: ThemePreference = .system
 
     @State private var isEditingName = false
     @State private var nameInput = ""
@@ -26,10 +27,16 @@ struct ProfileView: View {
         let types = onboarding.workerTypes
         if types.contains(.employee) && types.contains(.contractor) {
             return "Blönduð (hybrid)"
+        } else if types.contains(.employee) && types.contains(.heimagisting) {
+            return "Launþegi + Heimagisting"
+        } else if types.contains(.contractor) && types.contains(.heimagisting) {
+            return "Verktaki + Heimagisting"
         } else if types.contains(.employee) {
             return "Launþegi"
         } else if types.contains(.contractor) {
             return "Verktaki"
+        } else if types.contains(.heimagisting) {
+            return "Heimagisting"
         } else {
             return "Óskráð"
         }
@@ -47,6 +54,7 @@ struct ProfileView: View {
                     profileCard
                     infoList
                     languagePicker
+                    themePicker
                     subscriptionCard
                     accountActions
                 }
@@ -183,6 +191,42 @@ struct ProfileView: View {
         }
     }
 
+    private var themePicker: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Útlit / Appearance")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(TaxIsTheme.muted)
+                .padding(.horizontal, 2)
+
+            HStack(spacing: 0) {
+                ForEach(ThemePreference.allCases, id: \.rawValue) { pref in
+                    Button {
+                        themePreference = pref
+                    } label: {
+                        VStack(spacing: 3) {
+                            Image(systemName: pref.icon)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(themePreference == pref ? TaxIsTheme.onMint : TaxIsTheme.text)
+                            Text(pref.label)
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(themePreference == pref ? TaxIsTheme.onMint : TaxIsTheme.muted)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 9)
+                        .background(themePreference == pref ? TaxIsTheme.mint : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control - 1))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(2)
+                }
+            }
+            .background(TaxIsTheme.card)
+            .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control))
+            .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control)
+                .strokeBorder(TaxIsTheme.border, lineWidth: 1))
+        }
+    }
+
     private var accountActions: some View {
         VStack(spacing: 0) {
             Button { onboarding.reset() } label: { actionRow("Breyta starfstegund", TaxIsTheme.mintText) }
@@ -230,7 +274,7 @@ private struct EditNameSheet: View {
                         .textContentType(.name)
                         .font(.body).foregroundStyle(TaxIsTheme.text)
                         .padding(12)
-                        .background(Color.white.opacity(0.06))
+                        .background(TaxIsTheme.inputBg)
                         .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control))
                         .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control)
                             .strokeBorder(TaxIsTheme.borderStrong, lineWidth: 1))

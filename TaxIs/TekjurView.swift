@@ -329,7 +329,7 @@ private struct AddRevenueSheet: View {
                 .keyboardType(keyboard)
                 .font(.body).foregroundStyle(TaxIsTheme.text)
                 .padding(10)
-                .background(Color.white.opacity(0.06))
+                .background(TaxIsTheme.inputBg)
                 .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control))
                 .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control)
                     .strokeBorder(TaxIsTheme.borderStrong, lineWidth: 1))

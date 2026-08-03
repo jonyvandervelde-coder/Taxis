@@ -16,17 +16,7 @@ final class SessionStore: ObservableObject {
     @Published private(set) var isDeletingAccount = false
 
     init() {
-        #if DEBUG
-        isSignedIn = true
-        #else
         isSignedIn = (try? SupabaseSession.currentAccessToken()) != nil
-        #endif
-    }
-
-    func debugBypassSignIn() {
-        #if DEBUG
-        isSignedIn = true
-        #endif
     }
 
     func handleSignedIn() {
