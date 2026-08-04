@@ -129,54 +129,222 @@
 		E860B031E1470634834E885A /* TaxIs */ = {
 			isa = PBXGroup;
 			children = (
-				735B3B31BD7AA2DE441E955D /* TaxIsApp.swift */,
-				CA4247E6A63BF303C51B69C1 /* ContentView.swift */,
-				A5FC7DA92DFAE47A897055AC /* KeychainHelper.swift */,
-				F672E84A30A75333EEA18E02 /* SupabaseSession.swift */,
-				0B559B36F0729951E81A92FC /* SupabaseConfig.swift */,
-				366B70243D6582D6EE397128 /* ReceiptExtractionService.swift */,
-				988FBBD3426E589954A8FBE2 /* TaxIsModels.swift */,
-				E26C187A559D6C9A6EB5E13C /* TransactionRecord.swift */,
-				97F3385D7E45A13D03F96DB0 /* SupabaseTransactionRepository.swift */,
-				BD6E8AFE161E507ECB355EB8 /* TaxIsTheme.swift */,
-				3B955421F7221734364180F3 /* SupabaseAuthService.swift */,
-				2CBF4BD96AD7F72D33222B55 /* SessionStore.swift */,
-				EFD6B13A8820E00A9376C6B7 /* AuthView.swift */,
-				50F2B1D46DCBBD401C29688F /* CaptureView.swift */,
-				3A5B07C9159BD2AB1A217304 /* TransactionConfirmationView.swift */,
-				F95A2DF638D845B4DAFB4B51 /* TransactionsListView.swift */,
-				E582C6F5E4035EE7C2DC3A90 /* MainTabView.swift */,
-				3792F0A925B265300511B7B4 /* TaxIsLogo.swift */,
-				F5214E43806F098D9911A96A /* Assets.xcassets */,
-				634EBD4AEA571622C480D0E0 /* SplashView.swift */,
-				3F1AD22EF11253A5C77FCE91 /* WorkerType.swift */,
-				17BFDAF8F28C08A2C6E16F76 /* OnboardingStore.swift */,
-				D6E618FCE9D455402A88822F /* WorkerTypeSelectionView.swift */,
-				3ED26B76292C90E24D8B5117 /* OnboardingFlowView.swift */,
-				B16A690686DE666695B7A57A /* HomeView.swift */,
-				D647CEB6BEF52486BBEF7979 /* DeductionsView.swift */,
-				09463C267E51B2F50D89FD16 /* ProfileView.swift */,
-				E40A8511BDC3FB7DC1A01BDC /* TaxInsightsService.swift */,
-				486574C674B648D594076C3B /* VerktakiExpenseStore.swift */,
-				C1A2B3C4D5E6F7A8B9C0D1E2 /* TaxCalculationEngine.swift */,
-				A1B2C3D4E5F6A7B8C9D0E1F2 /* SalariedJobStore.swift */,
-				D1E2F3A4B5C6D7E8F9A0B1C2 /* VerktakiRevenueStore.swift */,
-				F1A2B3C4D5E6F7A8B9C0D1E4 /* TermsView.swift */,
-				AA11BB22CC33DD44EE55FF01 /* UserProfileStore.swift */,
-				BB22CC33DD44EE55FF66AA01 /* LaunasedlarView.swift */,
-				CC33DD44EE55FF66AA77BB01 /* TekjurView.swift */,
-				DD44EE55FF66AA77BB88CC01 /* UtgjoldView.swift */,
-				EE55FF66AA77BB88CC99DD01 /* LocalizationManager.swift */,
-				FF66AA77BB88CC99DDEE0001 /* FærslurView.swift */,
-				AA77BB88CC99DDEE00FF1101 /* AkstursbokStore.swift */,
-				BB88CC99DDEE0011AA220001 /* BlandadTekjurView.swift */,
-				CC99DDEE0011AA2200BB3300 /* TaxLedgerStore.swift */,
-				DD00EEFF1122BB3300CC4401 /* HeimagistingView.swift */,
+				A0000001B0000001C0000001 /* App */,
+				A0000002B0000002C0000002 /* Core */,
+				A0000006B0000006C0000006 /* Features */,
+				A0000011B0000011C0000011 /* Models */,
+				A0000012B0000012C0000012 /* Services */,
+				A0000015B0000015C0000015 /* UI */,
 			);
 			path = TaxIs;
 			sourceTree = "<group>";
 		};
-/* End PBXGroup section */
+		A0000001B0000001C0000001 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				735B3B31BD7AA2DE441E955D /* TaxIsApp.swift */,
+				CA4247E6A63BF303C51B69C1 /* ContentView.swift */,
+				E582C6F5E4035EE7C2DC3A90 /* MainTabView.swift */,
+				F5214E43806F098D9911A96A /* Assets.xcassets */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A0000002B0000002C0000002 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				A0000003B0000003C0000003 /* Theme */,
+				A0000004B0000004C0000004 /* Localization */,
+				A0000005B0000005C0000005 /* Security */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		A0000003B0000003C0000003 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				BD6E8AFE161E507ECB355EB8 /* TaxIsTheme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		A0000004B0000004C0000004 /* Localization */ = {
+			isa = PBXGroup;
+			children = (
+				EE55FF66AA77BB88CC99DD01 /* LocalizationManager.swift */,
+			);
+			path = Localization;
+			sourceTree = "<group>";
+		};
+		A0000005B0000005C0000005 /* Security */ = {
+			isa = PBXGroup;
+			children = (
+				A5FC7DA92DFAE47A897055AC /* KeychainHelper.swift */,
+			);
+			path = Security;
+			sourceTree = "<group>";
+		};
+		A0000006B0000006C0000006 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				A0000007B0000007C0000007 /* Auth */,
+				A0000008B0000008C0000008 /* Onboarding */,
+				A0000009B0000009C0000009 /* Home */,
+				A000000AB000000AC000000A /* Capture */,
+				A000000BB000000BC000000B /* Transactions */,
+				A000000CB000000CC000000C /* Income */,
+				A000000DB000000DC000000D /* Deductions */,
+				A000000EB000000EC000000E /* Profile */,
+				A000000FB000000FC000000F /* Heimagisting */,
+				A0000010B0000010C0000010 /* Akstur */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		A0000007B0000007C0000007 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				EFD6B13A8820E00A9376C6B7 /* AuthView.swift */,
+				2CBF4BD96AD7F72D33222B55 /* SessionStore.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		A0000008B0000008C0000008 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				3ED26B76292C90E24D8B5117 /* OnboardingFlowView.swift */,
+				D6E618FCE9D455402A88822F /* WorkerTypeSelectionView.swift */,
+				F1A2B3C4D5E6F7A8B9C0D1E4 /* TermsView.swift */,
+				17BFDAF8F28C08A2C6E16F76 /* OnboardingStore.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		A0000009B0000009C0000009 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				B16A690686DE666695B7A57A /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		A000000AB000000AC000000A /* Capture */ = {
+			isa = PBXGroup;
+			children = (
+				50F2B1D46DCBBD401C29688F /* CaptureView.swift */,
+				3A5B07C9159BD2AB1A217304 /* TransactionConfirmationView.swift */,
+			);
+			path = Capture;
+			sourceTree = "<group>";
+		};
+		A000000BB000000BC000000B /* Transactions */ = {
+			isa = PBXGroup;
+			children = (
+				F95A2DF638D845B4DAFB4B51 /* TransactionsListView.swift */,
+				FF66AA77BB88CC99DDEE0001 /* FærslurView.swift */,
+			);
+			path = Transactions;
+			sourceTree = "<group>";
+		};
+		A000000CB000000CC000000C /* Income */ = {
+			isa = PBXGroup;
+			children = (
+				BB22CC33DD44EE55FF66AA01 /* LaunasedlarView.swift */,
+				CC33DD44EE55FF66AA77BB01 /* TekjurView.swift */,
+				BB88CC99DDEE0011AA220001 /* BlandadTekjurView.swift */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* SalariedJobStore.swift */,
+				D1E2F3A4B5C6D7E8F9A0B1C2 /* VerktakiRevenueStore.swift */,
+			);
+			path = Income;
+			sourceTree = "<group>";
+		};
+		A000000DB000000DC000000D /* Deductions */ = {
+			isa = PBXGroup;
+			children = (
+				D647CEB6BEF52486BBEF7979 /* DeductionsView.swift */,
+				DD44EE55FF66AA77BB88CC01 /* UtgjoldView.swift */,
+				486574C674B648D594076C3B /* VerktakiExpenseStore.swift */,
+			);
+			path = Deductions;
+			sourceTree = "<group>";
+		};
+		A000000EB000000EC000000E /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				09463C267E51B2F50D89FD16 /* ProfileView.swift */,
+				AA11BB22CC33DD44EE55FF01 /* UserProfileStore.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		A000000FB000000FC000000F /* Heimagisting */ = {
+			isa = PBXGroup;
+			children = (
+				DD00EEFF1122BB3300CC4401 /* HeimagistingView.swift */,
+				CC99DDEE0011AA2200BB3300 /* TaxLedgerStore.swift */,
+			);
+			path = Heimagisting;
+			sourceTree = "<group>";
+		};
+		A0000010B0000010C0000010 /* Akstur */ = {
+			isa = PBXGroup;
+			children = (
+				AA77BB88CC99DDEE00FF1101 /* AkstursbokStore.swift */,
+			);
+			path = Akstur;
+			sourceTree = "<group>";
+		};
+		A0000011B0000011C0000011 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				988FBBD3426E589954A8FBE2 /* TaxIsModels.swift */,
+				E26C187A559D6C9A6EB5E13C /* TransactionRecord.swift */,
+				3F1AD22EF11253A5C77FCE91 /* WorkerType.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A0000012B0000012C0000012 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A0000013B0000013C0000013 /* Supabase */,
+				A0000014B0000014C0000014 /* Tax */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A0000013B0000013C0000013 /* Supabase */ = {
+			isa = PBXGroup;
+			children = (
+				0B559B36F0729951E81A92FC /* SupabaseConfig.swift */,
+				F672E84A30A75333EEA18E02 /* SupabaseSession.swift */,
+				3B955421F7221734364180F3 /* SupabaseAuthService.swift */,
+				97F3385D7E45A13D03F96DB0 /* SupabaseTransactionRepository.swift */,
+			);
+			path = Supabase;
+			sourceTree = "<group>";
+		};
+		A0000014B0000014C0000014 /* Tax */ = {
+			isa = PBXGroup;
+			children = (
+				366B70243D6582D6EE397128 /* ReceiptExtractionService.swift */,
+				E40A8511BDC3FB7DC1A01BDC /* TaxInsightsService.swift */,
+				C1A2B3C4D5E6F7A8B9C0D1E2 /* TaxCalculationEngine.swift */,
+			);
+			path = Tax;
+			sourceTree = "<group>";
+		};
+		A0000015B0000015C0000015 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				3792F0A925B265300511B7B4 /* TaxIsLogo.swift */,
+				634EBD4AEA571622C480D0E0 /* SplashView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		/* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
 		CCC84053E65648E03EC69BFE /* TaxIs */ = {
@@ -316,9 +484,13 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.taxis.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -452,9 +624,13 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.taxis.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
