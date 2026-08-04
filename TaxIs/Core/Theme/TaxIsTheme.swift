@@ -56,14 +56,17 @@ enum TaxIsTheme {
     static let red  = Color(hex: 0xEF4444)
 
     // MARK: - Text
-    //   Light: slate-900 / slate-500    Dark: near-white / slate-400
+    //   Light: slate-900 / slate-600    Dark: near-white / slate-400
+    //
+    //   slate-500 (#64748B) on slate-50 (#F8FAFC) gives ≈4.2:1 contrast,
+    //   just below WCAG AA. Bumped to slate-600 (#475569) which gives ≈5.9:1.
 
     /// Primary heading colour. Historical name "navy" kept for stability.
     static let navy      = adaptive(light: 0x0F172A, dark: 0xF8F9FA)
     static let text      = adaptive(light: 0x0F172A, dark: 0xF8F9FA)
-    static let body      = adaptive(light: 0x64748B, dark: 0x94A3B8)
-    static let secondary = adaptive(light: 0x64748B, dark: 0x94A3B8)
-    static let muted     = adaptive(light: 0x64748B, dark: 0x94A3B8)
+    static let body      = adaptive(light: 0x475569, dark: 0x94A3B8)
+    static let secondary = adaptive(light: 0x475569, dark: 0x94A3B8)
+    static let muted     = adaptive(light: 0x475569, dark: 0x94A3B8)
 
     // MARK: - Borders / dividers
     //   Light: slate-200 / slate-300    Dark: slate-700/8

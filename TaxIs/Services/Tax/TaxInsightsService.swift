@@ -239,6 +239,8 @@ final class TaxInsightsService {
         adopt a "you owe money, bad news" tone — frame everything as \
         actionable ("here's what to check/do next"), per this app's \
         design system.
+
+        Language note: In Icelandic output, NEVER use the term         "Vangreiddur skattur". When referring to a withholding tax         shortfall, always use the more cautious phrase "Áætlaður         mismunur á staðgreiðslu" and precede any figure with         "Samkvæmt skráðum upplýsingum" to make the estimate nature         clear — never state a shortfall as fact.
         """
     }
 

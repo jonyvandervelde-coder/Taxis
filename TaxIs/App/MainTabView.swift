@@ -196,16 +196,26 @@ struct CustomTabBar: View {
     }
 
     private func centerButton(_ tab: TabDef, index: Int) -> some View {
-        Button { selected = index } label: {
+        let isActive = selected == index
+        return Button { selected = index } label: {
             VStack(spacing: 4) {
                 ZStack {
                     Circle()
-                        .fill(TaxIsTheme.mint)
+                        .fill(isActive ? TaxIsTheme.mint : TaxIsTheme.card)
                         .frame(width: 54, height: 54)
-                        .shadow(color: TaxIsTheme.mint.opacity(0.4), radius: 8, y: -2)
+                        .overlay(
+                            Circle().strokeBorder(
+                                isActive ? Color.clear : TaxIsTheme.borderStrong,
+                                lineWidth: 1.5
+                            )
+                        )
+                        .shadow(
+                            color: isActive ? TaxIsTheme.mint.opacity(0.35) : Color.clear,
+                            radius: 8, y: -2
+                        )
                     Image(systemName: tab.icon)
                         .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(TaxIsTheme.onMint)
+                        .foregroundStyle(isActive ? TaxIsTheme.onMint : TaxIsTheme.muted)
                 }
                 .offset(y: -4)
 

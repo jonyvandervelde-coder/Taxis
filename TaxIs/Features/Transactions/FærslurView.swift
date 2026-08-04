@@ -546,9 +546,12 @@ struct FærslurView: View {
                     }
                 }
                 .padding(18)
-                .padding(.top, 40)
+                .padding(.top, 8)   // safeAreaPadding(.top) below handles status bar
                 .padding(.bottom, 30)
             }
+            // Respect the actual top safe area (Dynamic Island, notch, status bar)
+            // so the title never slides under the system UI on any device.
+            .safeAreaPadding(.top)
         }
     }
 

@@ -73,7 +73,7 @@ enum LKey {
 
         case (.tabInsights, .english): return "Guide"
         case (.tabInsights, .spanish): return "Guía"
-        case (.tabInsights, _):        return "Færsla"
+        case (.tabInsights, _):        return "Fræðsla"
 
         case (.tabRevenue, .english):  return "Revenue"
         case (.tabRevenue, .spanish):  return "Ingresos"

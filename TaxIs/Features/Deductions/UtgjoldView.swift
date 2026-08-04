@@ -163,7 +163,14 @@ struct UtgjoldView: View {
                         .buttonStyle(.plain)
                     }
                 }
+                // Extra padding prevents capsule strokes and shadows from
+                // being hard-clipped at the scroll view's leading/trailing edges.
+                .padding(.vertical, 2)
+                .padding(.horizontal, 2)
             }
+            // Compensate for the inner horizontal padding so chips align
+            // with the rest of the card content.
+            .padding(.horizontal, -2)
         }
     }
 

@@ -448,9 +448,21 @@ private struct SettlementHeroCard: View {
 
     private var badge: (label: String, color: Color) {
         switch settlement.outcome {
-        case .debt:         return ("Áætluð skuld", TaxIsTheme.red)
-        case .reimbursement:return ("Áætluð endurgreiðsla", TaxIsTheme.mint)
-        case .breakEven:    return ("Í jafnvægi", TaxIsTheme.muted)
+        case .debt:          return ("Áætlaður mismunur", TaxIsTheme.red)
+        case .reimbursement: return ("Áætluð endurgreiðsla", TaxIsTheme.mint)
+        case .breakEven:     return ("Í jafnvægi", TaxIsTheme.muted)
+        }
+    }
+
+    private var bodyText: String {
+        switch settlement.outcome {
+        case .debt:
+            let amt = formatISK(abs(settlement.netPositionISK))
+            return "Samkvæmt skráðum upplýsingum gæti vantað um \(amt) upp á staðgreiðslu."
+        case .reimbursement:
+            return "Áætluð endurgreiðsla við álagningu: \(formatISK(settlement.netPositionISK))."
+        case .breakEven:
+            return "Staðgreiðsla virðist vera í jafnvægi við væntanlega álagningu."
         }
     }
 
@@ -473,18 +485,37 @@ private struct SettlementHeroCard: View {
                 .overlay(Capsule().strokeBorder(badge.color.opacity(0.4), lineWidth: 1))
             }
 
-            Text(formatISK(settlement.netPositionISK))
+            Text(formatISK(abs(settlement.netPositionISK)))
                 .font(.largeTitle.bold())
                 .foregroundStyle(TaxIsTheme.text)
+                .accessibilityLabel(badge.label + ": " + formatISK(abs(settlement.netPositionISK)))
 
-            Text("Vikmörk: ±\(formatISK(settlement.confidenceBandISK)) · \(settlement.headlineNote)")
+            Text(bodyText)
                 .font(.subheadline)
                 .foregroundStyle(TaxIsTheme.muted)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text("Vikmörk: ±\(formatISK(settlement.confidenceBandISK)) · \(settlement.headlineNote)")
+                .font(.caption)
+                .foregroundStyle(TaxIsTheme.muted.opacity(0.8))
 
             TaxBracketChart(
                 combinedTaxable: NSDecimalNumber(decimal: settlement.projectedAnnualCombinedTaxableISK).doubleValue
             )
             .padding(.top, 8)
+
+            // Calculation provenance footer
+            Divider().background(TaxIsTheme.border).padding(.top, 4)
+            HStack(spacing: 6) {
+                Text("Útreikningsár: 2026")
+                Text("·")
+                Text("Síðast uppfært: ágúst 2026")
+                Spacer(minLength: 0)
+                Link("Skatturinn.is ↗", destination: URL(string: "https://www.skatturinn.is/einstaklingar/")!)
+                    .foregroundStyle(TaxIsTheme.mintText)
+            }
+            .font(.caption2)
+            .foregroundStyle(TaxIsTheme.muted)
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)

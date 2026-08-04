@@ -26,7 +26,12 @@ struct BlandadTekjurView: View {
         HStack(spacing: 0) {
             ForEach(BSegment.allCases, id: \.self) { s in
                 Button { segment = s } label: {
-                    Text(s == .launasedlar ? lm.t(.tabPayslips) : lm.t(.tabRevenue))
+                    // Use "Verktakatekjur" (not "Tekjur") so this segment is never
+                    // confused with the "Tekjur" bottom-nav tab in the full layout.
+                    Text(s == .launasedlar
+                         ? lm.t(.tabPayslips)
+                         : (lm.language == .icelandic ? "Verktakatekjur" : lm.t(.tabRevenue))
+                    )
                         .font(.caption.weight(.semibold))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 7)

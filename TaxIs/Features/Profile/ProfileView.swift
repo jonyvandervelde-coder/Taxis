@@ -56,10 +56,21 @@ struct ProfileView: View {
                     languagePicker
                     themePicker
                     subscriptionCard
+
+                    sectionHeader("Lögleg gögn")
+                    legalSection
+
+                    sectionHeader("Gögn og persónuvernd")
+                    dataSection
+
+                    sectionHeader("Reikningur")
                     accountActions
+
+                    operatorsCard
                 }
                 .padding(18)
                 .padding(.top, 40)
+                .padding(.bottom, 20)
             }
         }
         .alert("Eyða aðgangi", isPresented: $showDeleteConfirmation) {
@@ -240,6 +251,144 @@ struct ProfileView: View {
         .background(TaxIsTheme.card)
         .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card))
         .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card).strokeBorder(TaxIsTheme.border, lineWidth: 1))
+    }
+
+    // MARK: - Legal section
+
+    private var legalSection: some View {
+        VStack(spacing: 0) {
+            linkRow("Notendaskilmálar",
+                    url: "https://taxis.app/terms",
+                    showDivider: true)
+            linkRow("Persónuverndarstefna",
+                    url: "https://taxis.app/privacy",
+                    showDivider: true)
+            linkRow("Heimildir útreikninga",
+                    url: "https://www.skatturinn.is/einstaklingar/",
+                    showDivider: false)
+        }
+        .background(TaxIsTheme.card)
+        .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card))
+        .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card).strokeBorder(TaxIsTheme.border, lineWidth: 1))
+    }
+
+    private func linkRow(_ label: String, url: String, showDivider: Bool) -> some View {
+        VStack(spacing: 0) {
+            Link(destination: URL(string: url)!) {
+                HStack {
+                    Text(label)
+                        .font(.subheadline)
+                        .foregroundStyle(TaxIsTheme.text)
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(TaxIsTheme.muted)
+                }
+                .padding(.horizontal, 15).padding(.vertical, 13)
+            }
+            if showDivider { Divider().background(TaxIsTheme.border) }
+        }
+    }
+
+    // MARK: - Data section
+
+    private var dataSection: some View {
+        VStack(spacing: 0) {
+            Button { exportData() } label: {
+                HStack {
+                    Text("Sækja mín gögn")
+                        .font(.subheadline).foregroundStyle(TaxIsTheme.mintText)
+                    Spacer()
+                    Image(systemName: "square.and.arrow.down")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(TaxIsTheme.mintText)
+                }
+                .padding(.horizontal, 15).padding(.vertical, 13)
+            }
+            .buttonStyle(.plain)
+            Divider().background(TaxIsTheme.border)
+            Button(role: .destructive) { showDeleteConfirmation = true } label: {
+                HStack {
+                    Text("Eyða gögnum")
+                        .font(.subheadline).foregroundStyle(TaxIsTheme.redText)
+                    Spacer()
+                    Image(systemName: "trash")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(TaxIsTheme.redText)
+                }
+                .padding(.horizontal, 15).padding(.vertical, 13)
+            }
+            .buttonStyle(.plain)
+            Divider().background(TaxIsTheme.border)
+            Link(destination: URL(string: "mailto:hafa-samband@taxis.app")!) {
+                HStack {
+                    Text("Hafa samband")
+                        .font(.subheadline).foregroundStyle(TaxIsTheme.text)
+                    Spacer()
+                    Image(systemName: "envelope")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(TaxIsTheme.muted)
+                }
+                .padding(.horizontal, 15).padding(.vertical, 13)
+            }
+        }
+        .background(TaxIsTheme.card)
+        .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card))
+        .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card).strokeBorder(TaxIsTheme.border, lineWidth: 1))
+    }
+
+    private func exportData() {
+        // TODO: generate a JSON/CSV of the user's transactions and share it
+        // via UIActivityViewController. Placeholder until data-export flow is built.
+    }
+
+    // MARK: - Operators card (GDPR / Icelandic law)
+
+    private var operatorsCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("ÁBYRGÐARAÐILAR")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(TaxIsTheme.muted)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Ábyrgðaraðili (Data Controller)")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(TaxIsTheme.text)
+                Text("TaxÍs / jonyvandervelde-coder — Reykjavík, Ísland")
+                    .font(.caption)
+                    .foregroundStyle(TaxIsTheme.muted)
+            }
+            Divider().background(TaxIsTheme.border)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Vinnsluaðili (Data Processor)")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(TaxIsTheme.text)
+                Text("Supabase Inc. — San Francisco, CA, USA")
+                    .font(.caption)
+                    .foregroundStyle(TaxIsTheme.muted)
+                Link("supabase.com/privacy", destination: URL(string: "https://supabase.com/privacy")!)
+                    .font(.caption)
+                    .foregroundStyle(TaxIsTheme.mintText)
+            }
+            Divider().background(TaxIsTheme.border)
+            Text("Útgáfa \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")
+                .font(.caption2)
+                .foregroundStyle(TaxIsTheme.muted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(TaxIsTheme.card)
+        .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card))
+        .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card).strokeBorder(TaxIsTheme.border, lineWidth: 1))
+    }
+
+    // MARK: - Shared helpers
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(TaxIsTheme.muted)
+            .padding(.horizontal, 2)
+            .padding(.top, 4)
     }
 
     private func actionRow(_ label: String, _ color: Color) -> some View {
