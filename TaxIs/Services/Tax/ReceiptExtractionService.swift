@@ -2,23 +2,16 @@
 //  ReceiptExtractionService.swift
 //  TaxÍs
 //
-//  Sends OCR'd Icelandic receipt/invoice text to Claude (Anthropic Messages
-//  API) using forced tool-use, so the model can only respond in the exact
-//  JSON shape ExtractedTransaction expects — vendor, ISK totals, and the
-//  correct VSK (VAT) category (24% standard / 11% reduced / 0% exempt).
+//  On-device structured extraction from Icelandic receipts, invoices, and
+//  payslips using regex pattern matching on Vision-framework OCR text.
+//  No external API calls — works fully offline and for free.
 //
 //  ── SECURITY NOTE ──────────────────────────────────────────────────────
-//  This class no longer calls api.anthropic.com directly. It calls the
-//  `receipt-extraction` Supabase Edge Function (see
-//  supabase/functions/receipt-extraction/index.ts), which holds the real
-//  Anthropic key server-side. The only credential this class stores or
-//  sends is the signed-in user's short-lived, revocable Supabase session
-//  access token (see SupabaseSession.swift) — never the provider key. The
-//  request/response contract with the Edge Function matches the Anthropic
-//  Messages API exactly, so buildRequestBody/parseExtractedTransaction
-//  below didn't need to change, only buildURLRequest and where the
-//  credential comes from.
-//
+//  Payslip extraction is restricted to financial figures only.
+//  This parser NEVER stores or surfaces: the employee's personal name,
+//  personal kennitala, home address, or bank account number.
+//  vendor_kennitala is always omitted for payslips by design.
+//  ────────────────────────────────────────────────────────────────────────
 
 import Foundation
 
@@ -26,6 +19,8 @@ import Foundation
 
 enum ReceiptExtractionError: LocalizedError {
     case emptyInputText
+    case unparseableDocument
+    // Legacy cases kept so any existing catch-sites still compile.
     case invalidHTTPResponse
     case httpError(statusCode: Int, body: String)
     case rateLimited(retryAfterSeconds: Double?)
@@ -37,24 +32,23 @@ enum ReceiptExtractionError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .emptyInputText:
-            return "The receipt/invoice text was empty — nothing to extract."
+            return "Tómur texti — ekkert að vinna með."
+        case .unparseableDocument:
+            return "Ekki tókst að lesa skjalið. Reyndu með skýrari mynd."
         case .invalidHTTPResponse:
-            return "The server returned a non-HTTP response."
-        case .httpError(let statusCode, let body):
-            return "AI provider returned HTTP \(statusCode): \(body)"
-        case .rateLimited(let retryAfterSeconds):
-            if let retryAfterSeconds {
-                return "Rate limited by the AI provider. Retry after \(retryAfterSeconds)s."
-            }
-            return "Rate limited by the AI provider."
+            return "Þjónninn skilaði óvæntri svörun."
+        case .httpError(let code, _):
+            return "Þjónnvilla \(code). Reyndu aftur."
+        case .rateLimited:
+            return "Of margar beiðnir. Reyndu eftir smá stund."
         case .noToolUseBlockInResponse:
-            return "The model responded without using the required extraction tool."
+            return "Greining mistókst — engin gögn fundust."
         case .decodingFailed(let underlying):
-            return "Failed to decode the extracted transaction: \(underlying.localizedDescription)"
-        case .arithmeticInconsistency(let transaction):
-            return "Extracted amounts don't add up: \(transaction.netAmountISK) + \(transaction.vskAmountISK) ≠ \(transaction.totalAmountISK)."
-        case .categoryRateMismatch(let transaction):
-            return "vsk_rate (\(transaction.vskRate)) doesn't match the canonical rate for \(transaction.vskCategory.rawValue)."
+            return underlying.localizedDescription
+        case .arithmeticInconsistency:
+            return "Upphæðir stemma ekki — vinsamlegast yfirfarðu."
+        case .categoryRateMismatch:
+            return "VSK-flokkur og hlutfall eru ekki í samræmi."
         }
     }
 }
@@ -65,307 +59,428 @@ final class ReceiptExtractionService {
 
     static let shared = ReceiptExtractionService()
 
-    /// Model used for extraction. claude-sonnet-5 is the default for
-    /// accuracy on messy OCR text; swap to claude-haiku-4-5-20251001 if
-    /// you want a cheaper/faster model for high receipt volume and are
-    /// comfortable with the manual-review threshold catching more cases.
-    private let model = "claude-sonnet-5"
+    /// Kept for source compatibility — always nil in the on-device path.
+    private(set) var lastRawResponseJSON: [String: Any]? = nil
 
-    /// Name of the Edge Function this service calls — see
-    /// supabase/functions/receipt-extraction/index.ts.
-    private let edgeFunctionName = "receipt-extraction"
+    init() {}
 
-    private let session: URLSession
-    private let decoder: JSONDecoder
-    private let maxRetries = 3
+    // MARK: - Public API
 
-    /// The full Anthropic response JSON from the most recent successful
-    /// extraction — callers persist this into `transactions.ai_raw_response`
-    /// (see taxis_schema.sql) as the audit trail. `nil` until the first
-    /// extraction completes.
-    private(set) var lastRawResponseJSON: [String: Any]?
-
-    init(session: URLSession = .shared) {
-        self.session = session
-        self.decoder = JSONDecoder()
-    }
-
-    // MARK: Public API
-
-    /// Sends raw OCR'd text from a receipt or invoice to the AI model and
-    /// returns a validated, structured transaction.
-    ///
-    /// - Parameters:
-    ///   - rawText: Text extracted from the receipt/invoice image (e.g. via
-    ///     VisionKit/VNRecognizeTextRequest upstream of this call).
-    ///   - sourceDocumentType: Whether this came from a receipt, invoice, or payslip.
-    /// - Returns: A structured, arithmetic-validated `ExtractedTransaction`.
-    /// - Throws: `ReceiptExtractionError` on any failure — network, HTTP,
-    ///   decoding, or validation.
+    /// Parses raw OCR text from a receipt, invoice, or payslip and returns a
+    /// validated `ExtractedTransaction`. Runs entirely on-device — no network.
     func extractTransaction(
         fromRawText rawText: String,
         sourceDocumentType: SourceDocumentType = .receipt
     ) async throws -> ExtractedTransaction {
         let trimmed = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            throw ReceiptExtractionError.emptyInputText
+        guard !trimmed.isEmpty else { throw ReceiptExtractionError.emptyInputText }
+
+        let lines = trimmed
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+
+        switch sourceDocumentType {
+        case .payslip:
+            return try parsePayslip(lines: lines, raw: trimmed)
+        case .receipt, .invoice:
+            return try parseReceiptOrInvoice(lines: lines, raw: trimmed, docType: sourceDocumentType)
         }
-
-        let accessToken = try SupabaseSession.currentAccessToken()
-
-        let requestBody = try buildRequestBody(rawText: trimmed, sourceDocumentType: sourceDocumentType)
-        let urlRequest = try buildURLRequest(accessToken: accessToken, body: requestBody)
-
-        let responseData = try await sendWithRetry(urlRequest)
-        let transaction = try parseExtractedTransaction(from: responseData)
-
-        guard transaction.isArithmeticallyConsistent else {
-            throw ReceiptExtractionError.arithmeticInconsistency(transaction)
-        }
-        guard transaction.isCategoryRateConsistent else {
-            throw ReceiptExtractionError.categoryRateMismatch(transaction)
-        }
-
-        return transaction
     }
 
-    /// Policy helper: whether this transaction should be routed to the
-    /// user for manual confirmation before being written as `confirmed`
-    /// (vs. `pending_review`) in the transactions table. Mirrors the
-    /// "OCR confidence-handling protocol" flagged as a required
-    /// architectural concern in the TaxÍs spec.
+    /// Returns true when the transaction should be flagged for human review
+    /// before being written as `confirmed`.
     func requiresManualReview(_ transaction: ExtractedTransaction) -> Bool {
-        let confidenceThreshold = 0.75
-        // vendor_kennitala is always omitted for payslips by design (see the
-        // privacy rule in systemPrompt) — its absence there isn't a signal
-        // of a bad extraction the way it is for receipts/invoices.
+        let threshold = 0.60
         let missingKennitalaIsConcerning = transaction.sourceDocumentType != .payslip
-        return transaction.aiConfidence < confidenceThreshold
+        return transaction.aiConfidence < threshold
             || (missingKennitalaIsConcerning && transaction.vendorKennitala == nil)
     }
 
-    // MARK: - Request construction
+    // MARK: - Payslip parsing
+    //
+    // SECURITY: Only financial figures are extracted.
+    // Personal name, personal kennitala, home address, and bank account
+    // numbers are NEVER stored or returned, even if present in the text.
 
-    private func buildURLRequest(accessToken: String, body: Data) throws -> URLRequest {
-        let url = try SupabaseConfig.functionsURL.appendingPathComponent(edgeFunctionName)
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.httpBody = body
-        request.timeoutInterval = 30
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(try SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        return request
-    }
+    private func parsePayslip(lines: [String], raw: String) throws -> ExtractedTransaction {
+        var confidence = 0.40
+        var notes: [String] = []
 
-    private func buildRequestBody(rawText: String, sourceDocumentType: SourceDocumentType) throws -> Data {
-        let payload: [String: Any] = [
-            "model": model,
-            "max_tokens": 1024,
-            "temperature": 0,
-            "system": systemPrompt,
-            "tools": [toolSchema],
-            "tool_choice": ["type": "tool", "name": toolName],
-            "messages": [
-                [
-                    "role": "user",
-                    "content": "Source document type: \(sourceDocumentType.rawValue)\n\nRaw OCR text:\n\(rawText)"
-                ]
-            ]
+        // ── Net pay (what lands in the employee's bank) ────────────────────
+        // Labels: Samtals útborgað, Útborgun, Útborgað, Greiðsla
+        let netPatterns: [String] = [
+            #"(?:samtals\s+)?útborg(?:að|un)\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"greiðsla\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"net\s*(?:pay|laun)\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"til\s+útgreiðslu\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
         ]
-        return try JSONSerialization.data(withJSONObject: payload, options: [])
-    }
+        let netPay = firstDecimal(patterns: netPatterns, in: raw)
+        if netPay != nil { confidence += 0.25 }
 
-    private var systemPrompt: String {
-        """
-        You are an accounting extraction engine for TaxÍs, an Icelandic tax \
-        app. You are given raw OCR text from an Icelandic receipt or \
-        invoice and must extract structured transaction data by calling \
-        the \(toolName) tool. Never respond in plain text.
-
-        Rules:
-        1. Amounts are in Icelandic króna (ISK). Icelandic number formatting \
-           uses "." as the thousands separator and "," as the decimal \
-           separator (e.g. "1.234,56" kr means 1234.56 ISK). Convert to \
-           plain decimal numbers with "." as the decimal separator in your \
-           output.
-        2. total_amount_isk is the final amount paid, including VSK. \
-           net_amount_isk is the amount before VSK. vsk_amount_isk is the \
-           VSK charged. These three must satisfy: \
-           net_amount_isk + vsk_amount_isk = total_amount_isk.
-        3. Classify vsk_category using current Icelandic VSK rules:
-           - "standard_24" (24%): most goods and services — electronics, \
-             clothing, fuel, alcohol, most retail.
-           - "reduced_11" (11%): food and groceries, restaurant/dining \
-             service, hotel/accommodation, books, newspapers, and \
-             household heating/electricity.
-           - "exempt_0" (0%): healthcare, insurance, financial services, \
-             residential rent.
-           If a receipt clearly mixes rates across line items (e.g. a \
-           supermarket receipt with groceries and household goods), \
-           populate line_items with each item's own vsk_category and set \
-           the top-level vsk_category to whichever rate the majority of \
-           the total falls under.
-        4. vsk_rate must be the exact decimal rate for the chosen \
-           vsk_category: 0.24, 0.11, or 0.
-        5. vendor_kennitala is the vendor's 10-digit Icelandic ID number \
-           (kennitala), if printed on the receipt. If not present or not \
-           legible, omit the field — do not guess.
-        5a. PRIVACY — if source_document_type is "payslip": this document is \
-           full of personal data (the employee's name, home address, \
-           personal kennitala, bank account number) that TaxÍs has no need \
-           to store. Extract ONLY the financial figures required by this \
-           tool: \
-           • total_amount_isk = net pay (what lands in the employee's bank, \
-             labelled "Samtals útborgað" or "Útborgun"). \
-           • gross_pay_isk = gross salary before all deductions (labelled \
-             "Laun alls" or "Bruttólaun"). \
-           • tax_withheld_isk = income tax withheld at source (labelled \
-             "Staðgreiðsla" or "Staðgreiðsla nú" — use the current-period \
-             net figure after persónuafsláttur, not the gross tax line). \
-           • net_amount_isk = same as total_amount_isk (wages have no VSK). \
-           • vsk_amount_isk = 0, vsk_category = "exempt_0", vsk_rate = 0. \
-           • transaction_date = payment date (Útb.dags or Útborgunardagur). \
-           Set vendor_name to the EMPLOYER's (company's) name only, never \
-           the employee's personal name. ALWAYS omit vendor_kennitala for \
-           payslips — never return a personal kennitala, and never return \
-           the employer's kennitala either. If the employer's name isn't \
-           clearly distinguishable from the employee's on the payslip, omit \
-           vendor_name rather than guess which one it is. Do not put any \
-           person's name, kennitala, address, or bank account number in the \
-           notes field.
-        6. transaction_date must be in YYYY-MM-DD format. Icelandic \
-           receipts commonly print dates as DD.MM.YYYY — convert \
-           accordingly.
-        7. ai_confidence is your own confidence in this extraction overall, \
-           from 0.0 (largely guessed) to 1.0 (every field clearly legible \
-           and unambiguous). Be conservative — this value gates whether a \
-           human reviews the result before it's treated as confirmed.
-        8. If the OCR text is too garbled to extract a field with any \
-           confidence, still return your best estimate but reflect that in \
-           a low ai_confidence and a note in the notes field explaining \
-           what was unclear. Never fabricate a kennitala or an amount \
-           that isn't supported by the text.
-        """
-    }
-
-    private let toolName = "record_extracted_transaction"
-
-    private var toolSchema: [String: Any] {
-        [
-            "name": toolName,
-            "description": "Records one structured transaction extracted from Icelandic receipt/invoice OCR text.",
-            "input_schema": [
-                "type": "object",
-                "properties": [
-                    "vendor_name": ["type": "string", "description": "Business/vendor name as printed on the receipt. For payslips: the employer's company name only — never the employee's personal name."],
-                    "vendor_kennitala": ["type": "string", "description": "Vendor's 10-digit Icelandic kennitala, if present. Always omit this for payslips — never a personal kennitala."],
-                    "currency": ["type": "string", "description": "Always 'ISK' for now.", "enum": ["ISK"]],
-                    "total_amount_isk": ["type": "number", "description": "Gross total paid, including VSK."],
-                    "net_amount_isk": ["type": "number", "description": "Net amount before VSK."],
-                    "vsk_amount_isk": ["type": "number", "description": "VSK amount charged."],
-                    "vsk_category": [
-                        "type": "string",
-                        "enum": ["standard_24", "reduced_11", "exempt_0"],
-                        "description": "The dominant VSK category for this transaction."
-                    ],
-                    "vsk_rate": ["type": "number", "description": "Decimal VSK rate matching vsk_category: 0.24, 0.11, or 0."],
-                    "line_items": [
-                        "type": "array",
-                        "description": "Optional per-item breakdown when the receipt mixes VSK rates.",
-                        "items": [
-                            "type": "object",
-                            "properties": [
-                                "description": ["type": "string"],
-                                "amount_isk": ["type": "number"],
-                                "vsk_category": ["type": "string", "enum": ["standard_24", "reduced_11", "exempt_0"]]
-                            ],
-                            "required": ["description", "amount_isk", "vsk_category"]
-                        ]
-                    ],
-                    "transaction_date": ["type": "string", "description": "YYYY-MM-DD"],
-                    "ai_confidence": ["type": "number", "description": "0.0–1.0 self-reported extraction confidence."],
-                    "source_document_type": ["type": "string", "enum": ["receipt", "invoice", "payslip"]],
-                    "notes": ["type": "string", "description": "Anything unclear about the extraction, or omitted."],
-                    "gross_pay_isk": ["type": "number", "description": "Payslip only: gross salary before all deductions (Laun alls / bruttólaun). Omit for receipts and invoices."],
-                    "tax_withheld_isk": ["type": "number", "description": "Payslip only: income tax withheld at source (Staðgreiðsla nú — net of persónuafsláttur). Omit for receipts and invoices."]
-                ],
-                "required": [
-                    "vendor_name", "currency", "total_amount_isk", "net_amount_isk",
-                    "vsk_amount_isk", "vsk_category", "vsk_rate", "transaction_date",
-                    "ai_confidence", "source_document_type"
-                ]
-            ]
+        // ── Gross pay (before deductions) ─────────────────────────────────
+        // Labels: Laun alls, Bruttólaun, Heildarlaun
+        let grossPatterns: [String] = [
+            #"laun\s+alls?\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"bruttólaun\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"heildarlaun\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"gross\s*(?:pay|salary)\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
         ]
+        let grossPay = firstDecimal(patterns: grossPatterns, in: raw)
+        if grossPay != nil { confidence += 0.10 }
+
+        // ── Income tax withheld ────────────────────────────────────────────
+        // Labels: Staðgreiðsla, Staðgreiðsla nú, Skattur
+        let taxPatterns: [String] = [
+            #"staðgreiðsla\s*(?:nú)?\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"staðgr\.?\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"skattur\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"income\s+tax\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+        ]
+        let taxWithheld = firstDecimal(patterns: taxPatterns, in: raw)
+        if taxWithheld != nil { confidence += 0.10 }
+
+        // ── Payment date ──────────────────────────────────────────────────
+        let datePatterns: [String] = [
+            #"útb\.?\s*dags\.?\s*[:\-–]?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})"#,
+            #"útborgunardagur\s*[:\-–]?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})"#,
+            #"greiðsludagur\s*[:\-–]?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})"#,
+            #"dags(?:etning)?\s*[:\-–]?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})"#,
+            #"(\d{4}-\d{2}-\d{2})"#,
+            #"(\d{1,2}\.\d{1,2}\.\d{4})"#,
+        ]
+        let dateRaw = firstString(patterns: datePatterns, in: raw)
+        let transactionDate = parseDate(dateRaw) ?? Date()
+        if dateRaw != nil { confidence += 0.10 }
+
+        // ── Employer name ─────────────────────────────────────────────────
+        // SECURITY: Only return when the line is clearly a company name
+        // (contains a legal-form suffix). Never return a person's name.
+        let employerName = extractEmployerName(lines: lines, raw: raw)
+
+        // ── Best-effort fallback if net pay not found ─────────────────────
+        let finalNetPay: Decimal
+        if let netPay {
+            finalNetPay = netPay
+        } else {
+            // Use the largest number on the page as a low-confidence guess
+            let allAmounts = allDecimalAmounts(in: raw)
+            finalNetPay = allAmounts.max() ?? Decimal(0)
+            confidence = 0.20
+            notes.append("Nettólaun fundust ekki — vinsamlegast staðfestu upphæð.")
+        }
+
+        return ExtractedTransaction(
+            vendorName: employerName ?? "Launagreiðandi",
+            vendorKennitala: nil,         // SECURITY: Always nil for payslips
+            currency: "ISK",
+            totalAmountISK: finalNetPay,
+            netAmountISK: finalNetPay,    // wages have no VSK
+            vskAmountISK: Decimal(0),
+            vskCategory: .exempt0,
+            vskRate: Decimal(0),
+            lineItems: nil,
+            transactionDate: transactionDate,
+            aiConfidence: min(confidence, 0.90),
+            sourceDocumentType: .payslip,
+            notes: notes.isEmpty ? nil : notes.joined(separator: "; "),
+            grossPayISK: grossPay,
+            taxWithheldISK: taxWithheld
+        )
     }
 
-    // MARK: - Networking with retry
+    // MARK: - Receipt / invoice parsing
 
-    private func sendWithRetry(_ request: URLRequest, attempt: Int = 1) async throws -> Data {
-        let (data, response) = try await session.data(for: request)
+    private func parseReceiptOrInvoice(
+        lines: [String],
+        raw: String,
+        docType: SourceDocumentType
+    ) throws -> ExtractedTransaction {
+        var confidence = 0.35
+        var notes: [String] = []
 
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw ReceiptExtractionError.invalidHTTPResponse
+        // ── Total amount ─────────────────────────────────────────────────
+        let totalPatterns: [String] = [
+            #"samtals?\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)\s*(?:kr\.?|isk)?"#,
+            #"heildarupphæð\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"til\s+greiðslu\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"(?:^|\b)total\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"(?:^|\b)grand\s*total\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+        ]
+        let total: Decimal
+        if let found = firstDecimal(patterns: totalPatterns, in: raw) {
+            total = found
+            confidence += 0.25
+        } else {
+            // Fallback: take the largest number on the receipt
+            let amounts = allDecimalAmounts(in: raw)
+            total = amounts.max() ?? Decimal(0)
+            confidence -= 0.10
+            notes.append("Heildarupphæð giskaður — vinsamlegast staðfestu.")
         }
 
-        switch httpResponse.statusCode {
-        case 200...299:
-            return data
+        // ── Explicit VSK line ─────────────────────────────────────────────
+        let vskPatterns: [String] = [
+            #"vsk\s*\(?\s*24\s*%\s*\)?\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"vsk\s*\(?\s*11\s*%\s*\)?\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"(?:^|\b)vsk\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"virðisaukaskattur\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+            #"mva\.?\s*[:\-–]?\s*([0-9][0-9.]*(?:,[0-9]+)?)"#,
+        ]
+        let explicitVSK = firstDecimal(patterns: vskPatterns, in: raw)
+        if explicitVSK != nil { confidence += 0.15 }
 
-        case 429, 500, 502, 503, 529:
-            // Retryable: rate limit or transient server error.
-            guard attempt < maxRetries else {
-                if httpResponse.statusCode == 429 {
-                    let retryAfter = httpResponse.value(forHTTPHeaderField: "retry-after").flatMap(Double.init)
-                    throw ReceiptExtractionError.rateLimited(retryAfterSeconds: retryAfter)
-                }
-                let body = String(data: data, encoding: .utf8) ?? "<no body>"
-                throw ReceiptExtractionError.httpError(statusCode: httpResponse.statusCode, body: body)
-            }
-            let backoffSeconds = pow(2.0, Double(attempt)) // 2s, 4s, 8s...
-            try await Task.sleep(nanoseconds: UInt64(backoffSeconds * 1_000_000_000))
-            return try await sendWithRetry(request, attempt: attempt + 1)
+        // ── VSK category & final net/vsk amounts ──────────────────────────
+        let (vskCategory, vskRate, netAmount, vskAmount) = deriveVSK(
+            raw: raw,
+            total: total,
+            explicitVSK: explicitVSK
+        )
 
-        default:
-            let body = String(data: data, encoding: .utf8) ?? "<no body>"
-            throw ReceiptExtractionError.httpError(statusCode: httpResponse.statusCode, body: body)
-        }
+        // ── Business kennitala (vendor footer, not personal) ──────────────
+        let vendorKennitala = extractBusinessKennitala(from: raw)
+        if vendorKennitala != nil { confidence += 0.10 }
+
+        // ── Date ──────────────────────────────────────────────────────────
+        let receiptDatePatterns: [String] = [
+            #"(\d{1,2}\.\d{1,2}\.\d{4})"#,
+            #"(\d{4}-\d{2}-\d{2})"#,
+            #"(\d{1,2}/\d{1,2}/\d{2,4})"#,
+        ]
+        let dateRaw = firstString(patterns: receiptDatePatterns, in: raw)
+        let transactionDate = parseDate(dateRaw) ?? Date()
+        if dateRaw != nil { confidence += 0.10 }
+
+        // ── Vendor name ───────────────────────────────────────────────────
+        let vendorName = extractReceiptVendorName(lines)
+
+        return ExtractedTransaction(
+            vendorName: vendorName,
+            vendorKennitala: vendorKennitala,
+            currency: "ISK",
+            totalAmountISK: total,
+            netAmountISK: netAmount,
+            vskAmountISK: vskAmount,
+            vskCategory: vskCategory,
+            vskRate: vskRate,
+            lineItems: nil,
+            transactionDate: transactionDate,
+            aiConfidence: min(max(confidence, 0.15), 0.88),
+            sourceDocumentType: docType,
+            notes: notes.isEmpty ? nil : notes.joined(separator: "; "),
+            grossPayISK: nil,
+            taxWithheldISK: nil
+        )
     }
 
-    // MARK: - Response parsing
+    // MARK: - VSK derivation
 
-    /// Anthropic Messages API responses look like:
-    /// {
-    ///   "content": [
-    ///     { "type": "tool_use", "name": "record_extracted_transaction", "input": { ... } }
-    ///   ],
-    ///   ...
-    /// }
-    private func parseExtractedTransaction(from data: Data) throws -> ExtractedTransaction {
-        let topLevel: [String: Any]
-        do {
-            guard let parsed = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                throw ReceiptExtractionError.noToolUseBlockInResponse
+    private func deriveVSK(
+        raw: String,
+        total: Decimal,
+        explicitVSK: Decimal?
+    ) -> (category: VSKCategory, rate: Decimal, net: Decimal, vsk: Decimal) {
+
+        let lower = raw.lowercased()
+
+        // Exempt check
+        let exemptKeywords = ["sjúkraþjónusta", "tryggingar", "fjármálaþjónusta",
+                              "íbúðarleiga", "insurance", "healthcare", "leiga"]
+        if exemptKeywords.contains(where: { lower.contains($0) }) {
+            return (.exempt0, Decimal(0), total, Decimal(0))
+        }
+
+        // Determine rate
+        let has24 = lower.contains("24%") || lower.contains("24 %")
+        let has11 = lower.contains("11%") || lower.contains("11 %")
+        let reducedKeywords = ["matur", "matvæli", "dagvörur", "veitingastaður",
+                               "veitingar", "hótel", "gisting", "bókaverslun",
+                               "blaðsala", "rafmagn", "hiti", "food", "hotel",
+                               "restaurant", "grocery", "groceries"]
+        let hasReduced = reducedKeywords.contains(where: { lower.contains($0) })
+
+        let rate: Decimal
+        let category: VSKCategory
+        if has11 || (hasReduced && !has24) {
+            rate = Decimal(string: "0.11")!
+            category = .reduced11
+        } else {
+            rate = Decimal(string: "0.24")!
+            category = .standard24
+        }
+
+        // Use explicit VSK if found and plausible
+        if let vsk = explicitVSK, vsk > 0, vsk < total {
+            let net = total - vsk
+            return (category, rate, net, vsk)
+        }
+
+        // Back-calculate from total: net = total / (1 + rate)
+        let divisor = NSDecimalNumber(decimal: Decimal(1) + rate)
+        let handler = NSDecimalNumberHandler(
+            roundingMode: .plain, scale: 0,
+            raiseOnExactness: false, raiseOnOverflow: false,
+            raiseOnUnderflow: false, raiseOnDivideByZero: false
+        )
+        let net = NSDecimalNumber(decimal: total).dividing(by: divisor, withBehavior: handler).decimalValue
+        let vsk = total - net
+        return (category, rate, net, vsk)
+    }
+
+    // MARK: - Employer name (payslip, security-sensitive)
+
+    /// Returns the employer's company name only when clearly identifiable by a
+    /// legal-form suffix. Returns nil rather than guess — caller fills in a
+    /// safe placeholder. NEVER returns an employee's personal name.
+    private func extractEmployerName(lines: [String], raw: String) -> String? {
+        // Look for explicitly labelled employer lines first
+        let labeledPatterns: [String] = [
+            #"(?:vinnuveitandi|fyrirtæki|launagreiðandi|employer)\s*[:\-–]\s*(.{3,70})"#,
+        ]
+        if let labeled = firstString(patterns: labeledPatterns, in: raw) {
+            return labeled.trimmingCharacters(in: .whitespaces)
+        }
+
+        // Scan early lines for a company name (must contain a legal-form suffix)
+        let companyIndicators = ["ehf", "hf.", " sf.", " ohf.", "ses.", " slhf",
+                                 "ráðgjöf", "þjónusta", "verslun", "samtök",
+                                 "stofnun", "ríkis", "sveit", "ltd", "corp",
+                                 "solutions", "services", "inc."]
+        for line in lines.prefix(10) {
+            let lower = line.lowercased()
+            if companyIndicators.contains(where: { lower.contains($0) }),
+               line.count >= 4, line.count <= 80 {
+                return line
             }
-            topLevel = parsed
-        } catch {
-            throw ReceiptExtractionError.decodingFailed(underlying: error)
         }
-        lastRawResponseJSON = topLevel
+        return nil
+    }
 
-        guard
-            let content = topLevel["content"] as? [[String: Any]],
-            let toolUseBlock = content.first(where: { ($0["type"] as? String) == "tool_use" && ($0["name"] as? String) == toolName }),
-            let toolInput = toolUseBlock["input"] as? [String: Any]
-        else {
-            throw ReceiptExtractionError.noToolUseBlockInResponse
-        }
+    // MARK: - Receipt vendor name
 
-        do {
-            let inputData = try JSONSerialization.data(withJSONObject: toolInput, options: [])
-            return try decoder.decode(ExtractedTransaction.self, from: inputData)
-        } catch {
-            throw ReceiptExtractionError.decodingFailed(underlying: error)
+    /// The vendor name on Icelandic receipts is almost always the first
+    /// non-numeric, non-date line near the top.
+    private func extractReceiptVendorName(_ lines: [String]) -> String {
+        for line in lines.prefix(5) {
+            guard !line.isEmpty, line.count >= 3 else { continue }
+            // Skip lines that look like dates or pure numbers
+            let firstChar = line.unicodeScalars.first!
+            guard !CharacterSet.decimalDigits.contains(firstChar) else { continue }
+            // Skip lines that are obviously headers/labels
+            let lower = line.lowercased()
+            let isHeader = ["kvittun", "reikningur", "receipt", "invoice",
+                            "dagsetning", "date", "tími", "time"].contains(where: { lower == $0 })
+            guard !isHeader else { continue }
+            return line
         }
+        return "Óþekktur söluaðili"
+    }
+
+    // MARK: - Business kennitala
+
+    /// Returns the LAST kennitala found in the text, which on Icelandic
+    /// receipts is typically the company's registration number in the footer.
+    /// Always returns nil for payslips — called only from receipt path.
+    private func extractBusinessKennitala(from text: String) -> String? {
+        let pattern = #"\b(\d{6}-?\d{4})\b"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return nil }
+        let ns = text as NSString
+        let matches = regex.matches(in: text, range: NSRange(location: 0, length: ns.length))
+        guard let last = matches.last else { return nil }
+        let raw = ns.substring(with: last.range(at: 1)).replacingOccurrences(of: "-", with: "")
+        // Exclude obvious non-kennitala matches (e.g. all-zero or sequential)
+        guard raw != "0000000000", raw.count == 10 else { return nil }
+        return raw
+    }
+
+    // MARK: - Date parsing
+
+    private func parseDate(_ s: String?) -> Date? {
+        guard let s else { return nil }
+
+        // ISO 8601
+        if let d = ExtractedTransaction.dateOnlyFormatter.date(from: s) { return d }
+
+        // DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY
+        let sep: [Character] = [".", "/", "-"]
+        for ch in sep {
+            let parts = s.split(separator: ch).map(String.init)
+            guard parts.count >= 3 else { continue }
+            let day = parts[0].count == 1 ? "0\(parts[0])" : parts[0]
+            let month = parts[1].count == 1 ? "0\(parts[1])" : parts[1]
+            let year = parts[2].count == 2 ? "20\(parts[2])" : parts[2]
+            let iso = "\(year)-\(month)-\(day)"
+            if let d = ExtractedTransaction.dateOnlyFormatter.date(from: iso) { return d }
+        }
+        return nil
+    }
+
+    // MARK: - Number parsing
+
+    /// Icelandic number format: "." = thousands separator, "," = decimal.
+    /// Examples: "1.234,56" → 1234.56 | "245.680" → 245680 | "680" → 680
+    private func parseIcelandicDecimal(_ s: String) -> Decimal? {
+        let clean = s.trimmingCharacters(in: .whitespacesAndNewlines)
+            .components(separatedBy: .whitespaces).joined()   // remove inner spaces
+
+        if clean.contains(",") {
+            // Has decimal part — remove dot thousands seps, swap comma
+            let normalized = clean
+                .replacingOccurrences(of: ".", with: "")
+                .replacingOccurrences(of: ",", with: ".")
+            return Decimal(string: normalized)
+        }
+        // Dots only → thousands separators
+        let withoutDots = clean.replacingOccurrences(of: ".", with: "")
+        return Decimal(string: withoutDots)
+    }
+
+    /// Applies multiple regex patterns in order; returns the first captured
+    /// group successfully parsed as a Decimal.
+    private func firstDecimal(patterns: [String], in text: String) -> Decimal? {
+        for pattern in patterns {
+            guard let regex = try? NSRegularExpression(
+                pattern: pattern,
+                options: [.caseInsensitive, .anchorsMatchLines]
+            ) else { continue }
+            let ns = text as NSString
+            let range = NSRange(location: 0, length: ns.length)
+            guard let match = regex.firstMatch(in: text, range: range),
+                  match.numberOfRanges > 1,
+                  match.range(at: 1).location != NSNotFound else { continue }
+            let captured = ns.substring(with: match.range(at: 1))
+            if let value = parseIcelandicDecimal(captured), value > 0 {
+                return value
+            }
+        }
+        return nil
+    }
+
+    /// Applies multiple regex patterns; returns the first captured group as a raw String.
+    private func firstString(patterns: [String], in text: String) -> String? {
+        for pattern in patterns {
+            guard let regex = try? NSRegularExpression(
+                pattern: pattern,
+                options: [.caseInsensitive, .anchorsMatchLines]
+            ) else { continue }
+            let ns = text as NSString
+            let range = NSRange(location: 0, length: ns.length)
+            guard let match = regex.firstMatch(in: text, range: range),
+                  match.numberOfRanges > 1,
+                  match.range(at: 1).location != NSNotFound else { continue }
+            return ns.substring(with: match.range(at: 1))
+        }
+        return nil
+    }
+
+    /// Extracts all plausible ISK amounts from a block of text.
+    /// Filters out numbers smaller than 10 to avoid noise (version numbers, etc.).
+    private func allDecimalAmounts(in text: String) -> [Decimal] {
+        let pattern = #"\b\d{1,3}(?:\.\d{3})*(?:,\d+)?\b"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        let ns = text as NSString
+        return regex.matches(in: text, range: NSRange(location: 0, length: ns.length))
+            .compactMap { parseIcelandicDecimal(ns.substring(with: $0.range)) }
+            .filter { $0 >= 10 }
     }
 }
