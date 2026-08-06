@@ -121,6 +121,32 @@ final class SupabaseAuthService: NSObject {
         try extractAndStoreToken(from: callbackURL)
     }
 
+    // MARK: - Forgot password
+
+    /// Sends a password-reset email via Supabase Auth. On success the user
+    /// receives a magic link; on tap it opens the app via the taxis:// scheme.
+    func resetPassword(email: String) async throws {
+        let url = try SupabaseConfig.projectURL.appendingPathComponent("auth/v1/recover")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(try SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "email": email,
+            "redirect_to": "taxis://auth/reset-password",
+        ])
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            let json = (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
+            let message = (json["msg"] as? String)
+                ?? (json["error_description"] as? String)
+                ?? (json["error"] as? String)
+                ?? "Tókst ekki að senda endursetningarpóst."
+            throw SupabaseAuthError.authFailed(message)
+        }
+    }
+
     // MARK: - Delete account
 
     func deleteAccount() async throws {

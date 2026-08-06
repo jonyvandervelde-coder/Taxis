@@ -11,32 +11,33 @@ struct TransactionsListView: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                TaxIsTheme.bg.ignoresSafeArea()
+        ZStack {
+            TaxIsTheme.bg.ignoresSafeArea()
 
-                if let errorMessage {
-                    Text(errorMessage)
-                        .font(.subheadline)
-                        .foregroundStyle(TaxIsTheme.redText)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
-                } else if transactions.isEmpty && !isLoading {
-                    Text("No transactions yet")
-                        .font(.subheadline)
-                        .foregroundStyle(TaxIsTheme.muted)
-                } else {
-                    List(transactions) { record in
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.subheadline)
+                    .foregroundStyle(TaxIsTheme.redText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+            } else if transactions.isEmpty && !isLoading {
+                Text("Engar færslur enn")
+                    .font(.subheadline)
+                    .foregroundStyle(TaxIsTheme.muted)
+            } else {
+                List {
+                    ForEach(transactions) { record in
                         TransactionRow(record: record)
                             .listRowBackground(TaxIsTheme.card)
                     }
-                    .scrollContentBackground(.hidden)
-                    .refreshable { await load() }
+                    .onDelete(perform: deleteItems)
                 }
+                .scrollContentBackground(.hidden)
+                .refreshable { await load() }
             }
-            .navigationTitle("Transactions")
-            .task { await load() }
         }
+        .navigationTitle("Launaseðlar")
+        .task { await load() }
     }
 
     private func load() async {
@@ -47,6 +48,17 @@ struct TransactionsListView: View {
             transactions = try await SupabaseTransactionRepository.shared.fetchTransactions()
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func deleteItems(at offsets: IndexSet) {
+        let toDelete = offsets.map { transactions[$0] }
+        transactions.remove(atOffsets: offsets)
+        Task {
+            for record in toDelete {
+                guard let id = record.id else { continue }
+                try? await SupabaseTransactionRepository.shared.delete(id: id)
+            }
         }
     }
 }
@@ -79,11 +91,11 @@ private struct TransactionRow: View {
     private var statusBadge: some View {
         switch record.extractionStatus {
         case .confirmed:
-            badge(text: "Confirmed", fg: TaxIsTheme.mintText, bg: TaxIsTheme.mintTint)
+            badge(text: "Staðfest",  fg: TaxIsTheme.mintText, bg: TaxIsTheme.mintTint)
         case .pendingReview:
-            badge(text: "Needs review", fg: TaxIsTheme.amber, bg: TaxIsTheme.amberTint)
+            badge(text: "Yfirfara",  fg: TaxIsTheme.amber,    bg: TaxIsTheme.amberTint)
         case .rejected:
-            badge(text: "Rejected", fg: TaxIsTheme.redText, bg: TaxIsTheme.red.opacity(0.1))
+            badge(text: "Hafnað",    fg: TaxIsTheme.redText,  bg: TaxIsTheme.red.opacity(0.1))
         }
     }
 
@@ -91,8 +103,7 @@ private struct TransactionRow: View {
         Text(text)
             .font(.caption2.weight(.bold))
             .foregroundStyle(fg)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
+            .padding(.horizontal, 8).padding(.vertical, 3)
             .background(bg)
             .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.pill))
     }

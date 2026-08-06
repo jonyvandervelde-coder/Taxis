@@ -128,6 +128,24 @@ final class SupabaseTransactionRepository {
         return try firstRow(from: data)
     }
 
+    /// Permanently deletes a transaction by ID. The server's RLS policy
+    /// ensures a user can only delete their own rows.
+    func delete(id: UUID) async throws {
+        guard var components = URLComponents(
+            url: try SupabaseConfig.restURL.appendingPathComponent("transactions"),
+            resolvingAgainstBaseURL: false
+        ) else {
+            throw TransactionRepositoryError.invalidHTTPResponse
+        }
+        components.queryItems = [URLQueryItem(name: "id", value: "eq.\(id.uuidString)")]
+
+        guard let url = components.url else {
+            throw TransactionRepositoryError.invalidHTTPResponse
+        }
+        let request = try authorizedRequest(url: url, method: "DELETE")
+        _ = try await send(request)
+    }
+
     // MARK: - Request helpers
 
     private func authorizedRequest(url: URL, method: String) throws -> URLRequest {

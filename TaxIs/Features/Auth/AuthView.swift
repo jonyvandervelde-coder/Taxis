@@ -21,6 +21,8 @@ struct AuthView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var infoMessage: String?
+    @State private var showForgotPassword = false
+    @State private var forgotPasswordEmail = ""
 
     var body: some View {
         ZStack {
@@ -78,6 +80,19 @@ struct AuthView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
 
+                        // Forgot password (only shown on sign-in screen)
+                        if !isCreatingAccount {
+                            Button {
+                                forgotPasswordEmail = email
+                                showForgotPassword = true
+                            } label: {
+                                Text("Gleymdir þú lykilorðinu?")
+                                    .font(.footnote)
+                                    .foregroundStyle(TaxIsTheme.mintText)
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                            }
+                        }
+
                         Button {
                             Task { await submitEmail() }
                         } label: {
@@ -118,6 +133,9 @@ struct AuthView: View {
                 }
                 .padding(.horizontal, 24)
             }
+        }
+        .alert(isPresented: $showForgotPassword) {
+            forgotPasswordAlert
         }
     }
 
@@ -211,6 +229,31 @@ struct AuthView: View {
             }
             isLoading = false
         }
+    }
+
+    // MARK: - Forgot password
+
+    var forgotPasswordAlert: Alert {
+        Alert(
+            title: Text("Endursetja lykilorð"),
+            message: Text("Sláðu inn netfangið þitt til að fá endursetningarpóst."),
+            primaryButton: .default(Text("Senda")) {
+                let sendEmail = forgotPasswordEmail.isEmpty ? email : forgotPasswordEmail
+                guard !sendEmail.isEmpty else { return }
+                isLoading = true
+                errorMessage = nil
+                Task {
+                    do {
+                        try await SupabaseAuthService.shared.resetPassword(email: sendEmail)
+                        infoMessage = "Endursetningarpóstur hefur verið sendur á \(sendEmail)."
+                    } catch {
+                        errorMessage = error.localizedDescription
+                    }
+                    isLoading = false
+                }
+            },
+            secondaryButton: .cancel(Text("Hætta við"))
+        )
     }
 
     // MARK: - Divider

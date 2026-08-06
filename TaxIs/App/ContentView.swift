@@ -2,16 +2,14 @@
 //  ContentView.swift
 //  TaxÍs
 //
-//  Root router with three gates in order:
+//  Root router with gates in order:
 //    1. TermsView — shown once, until termsAccepted is set.
-//    2. AuthView  — shown until there's a Supabase session (DEBUG-skippable).
+//    2. AuthView  — shown until there's a Supabase session.
 //    3. OnboardingFlowView — shown until worker-type is selected.
 //    4. MainTabView — the main app experience.
 //
-//  The three local data stores (salariedJobStore, revenueStore,
-//  expenseStore) are created here and injected as @EnvironmentObject so
-//  HomeView and DeductionsView share the same live instances without
-//  needing to thread them through every intermediate view.
+//  AppLockView is overlaid on top of everything whenever
+//  AppLockService.isLocked == true (triggered on background → foreground).
 //
 
 import SwiftUI
@@ -26,10 +24,14 @@ struct ContentView: View {
     @StateObject private var aksturStore    = AkstursbokStore()
     @StateObject private var lm             = LocalizationManager.shared
     @StateObject private var ledgerStore    = TaxLedgerStore.shared
+    @ObservedObject private var lockService = AppLockService.shared
+
     @State private var showSplash = true
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         ZStack {
+            // ── Main content ────────────────────────────────────────────
             if !onboarding.termsAccepted {
                 TermsView { onboarding.acceptTerms() }
             } else if session.isSignedIn {
@@ -42,9 +44,18 @@ struct ContentView: View {
                 AuthView(session: session)
             }
 
+            // ── App lock overlay ────────────────────────────────────────
+            if lockService.isLocked {
+                AppLockView(lockService: lockService)
+                    .transition(.opacity)
+                    .zIndex(10)
+            }
+
+            // ── Splash ──────────────────────────────────────────────────
             if showSplash {
                 SplashView()
                     .transition(.opacity)
+                    .zIndex(20)
             }
         }
         .environmentObject(salariedStore)
@@ -59,6 +70,16 @@ struct ContentView: View {
                 withAnimation(.easeInOut(duration: 0.7)) {
                     showSplash = false
                 }
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .background:
+                lockService.lockApp()
+            case .active:
+                lockService.handleForeground()
+            default:
+                break
             }
         }
         .onOpenURL { url in

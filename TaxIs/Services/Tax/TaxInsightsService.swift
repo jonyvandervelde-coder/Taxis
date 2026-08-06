@@ -54,7 +54,7 @@ struct TaxInsightsResult {
 final class TaxInsightsService {
     static let shared = TaxInsightsService()
 
-    private let model = "claude-sonnet-5"
+    private let model = "claude-haiku-4-5-20251001"
     private let edgeFunctionName = "tax-insights"
     private let toolName = "record_tax_insights"
     /// SF Symbols the model may pick for an insight's icon — kept to a

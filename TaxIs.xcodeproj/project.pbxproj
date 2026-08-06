@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EE11FF00112233445566AA01 /* AppLockService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA33112233445566778802AA /* AppLockService.swift */; };
+		FF22001122334455667701BB /* AppLockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB44223344556677889902BB /* AppLockView.swift */; };
+		AA33112233445566778802CC /* ManualPayslipEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC55334455667788990A02CC /* ManualPayslipEntryView.swift */; };
 		061387164C8B951A208E5DEB /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFD6B13A8820E00A9376C6B7 /* AuthView.swift */; };
 		0E744B9CA146B45CE430540F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F5214E43806F098D9911A96A /* Assets.xcassets */; };
 		12CDC15B2ED8C2BC03299E31 /* TransactionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26C187A559D6C9A6EB5E13C /* TransactionRecord.swift */; };
@@ -53,6 +56,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AA33112233445566778802AA /* AppLockService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppLockService.swift; path = TaxIs/Services/Security/AppLockService.swift; sourceTree = SOURCE_ROOT; };
+		BB44223344556677889902BB /* AppLockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppLockView.swift; path = TaxIs/Features/Security/AppLockView.swift; sourceTree = SOURCE_ROOT; };
+		CC55334455667788990A02CC /* ManualPayslipEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ManualPayslipEntryView.swift; path = TaxIs/Features/Capture/ManualPayslipEntryView.swift; sourceTree = SOURCE_ROOT; };
 		09463C267E51B2F50D89FD16 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		0B559B36F0729951E81A92FC /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		17BFDAF8F28C08A2C6E16F76 /* OnboardingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStore.swift; sourceTree = "<group>"; };
@@ -455,6 +461,9 @@
 				BB88CC99DDEE0011AA220002 /* BlandadTekjurView.swift in Sources */,
 				CC99DDEE0011AA2200BB3301 /* TaxLedgerStore.swift in Sources */,
 				DD00EEFF1122BB3300CC4402 /* HeimagistingView.swift in Sources */,
+				EE11FF00112233445566AA01 /* AppLockService.swift in Sources */,
+				FF22001122334455667701BB /* AppLockView.swift in Sources */,
+				AA33112233445566778802CC /* ManualPayslipEntryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

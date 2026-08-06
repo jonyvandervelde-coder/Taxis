@@ -11,6 +11,7 @@
 //
 
 import SwiftUI
+import LocalAuthentication
 
 struct ProfileView: View {
     @ObservedObject var session: SessionStore
@@ -19,9 +20,16 @@ struct ProfileView: View {
     @EnvironmentObject var lm: LocalizationManager
     @AppStorage("taxis.themePreference") private var themePreference: ThemePreference = .system
 
+    @ObservedObject private var lockService = AppLockService.shared
+
     @State private var isEditingName = false
     @State private var nameInput = ""
     @State private var showDeleteConfirmation = false
+    @State private var showPINSetup = false
+    @State private var newPIN = ""
+    @State private var confirmPIN = ""
+    @State private var pinSetupStep = 0   // 0=enter, 1=confirm
+    @State private var pinError = ""
 
     private var employmentTypeLabel: String {
         let types = onboarding.workerTypes
@@ -63,10 +71,18 @@ struct ProfileView: View {
                     sectionHeader("Gögn og persónuvernd")
                     dataSection
 
+                    sectionHeader("Öryggi")
+                    securitySection
+
                     sectionHeader("Reikningur")
                     accountActions
 
-                    operatorsCard
+                    // Version number footer
+                    Text("Útgáfa \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")
+                        .font(.caption2)
+                        .foregroundStyle(TaxIsTheme.muted)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, 4)
                 }
                 .padding(18)
                 .padding(.top, 40)
@@ -83,6 +99,9 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $isEditingName) {
             EditNameSheet(name: $profileStore.displayName)
+        }
+        .sheet(isPresented: $showPINSetup) {
+            pinSetupSheet
         }
     }
 
@@ -342,43 +361,183 @@ struct ProfileView: View {
         // via UIActivityViewController. Placeholder until data-export flow is built.
     }
 
-    // MARK: - Operators card (GDPR / Icelandic law)
+    // MARK: - Security section (Face ID / PIN)
 
-    private var operatorsCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("ÁBYRGÐARAÐILAR")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(TaxIsTheme.muted)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Ábyrgðaraðili (Data Controller)")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(TaxIsTheme.text)
-                Text("TaxÍs / jonyvandervelde-coder — Reykjavík, Ísland")
-                    .font(.caption)
-                    .foregroundStyle(TaxIsTheme.muted)
+    private var securitySection: some View {
+        VStack(spacing: 0) {
+            // Lock enable/disable toggle
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Læsa forriti")
+                        .font(.subheadline)
+                        .foregroundStyle(TaxIsTheme.text)
+                    Text(lockService.lockEnabled ? "Virkt" : "Óvirkt")
+                        .font(.caption)
+                        .foregroundStyle(TaxIsTheme.muted)
+                }
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { lockService.lockEnabled },
+                    set: { enabled in
+                        if !enabled {
+                            lockService.disableLock()
+                        } else if lockService.isBiometricAvailable() {
+                            lockService.enableBiometric()
+                        } else {
+                            showPINSetup = true
+                        }
+                    }
+                ))
+                .tint(TaxIsTheme.mint)
+                .labelsHidden()
             }
-            Divider().background(TaxIsTheme.border)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Vinnsluaðili (Data Processor)")
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(TaxIsTheme.text)
-                Text("Supabase Inc. — San Francisco, CA, USA")
-                    .font(.caption)
-                    .foregroundStyle(TaxIsTheme.muted)
-                Link("supabase.com/privacy", destination: URL(string: "https://supabase.com/privacy")!)
-                    .font(.caption)
-                    .foregroundStyle(TaxIsTheme.mintText)
+            .padding(.horizontal, 15).padding(.vertical, 13)
+
+            if lockService.lockEnabled {
+                Divider().background(TaxIsTheme.border)
+
+                // Method picker: biometric or PIN
+                if lockService.isBiometricAvailable() {
+                    HStack {
+                        Label(lockService.biometricLabel, systemImage: lockService.biometricIcon)
+                            .font(.subheadline)
+                            .foregroundStyle(TaxIsTheme.text)
+                        Spacer()
+                        if lockService.lockMethod == "biometric" {
+                            Image(systemName: "checkmark")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(TaxIsTheme.mint)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture { lockService.lockMethod = "biometric" }
+                    .padding(.horizontal, 15).padding(.vertical, 13)
+
+                    Divider().background(TaxIsTheme.border)
+                }
+
+                Button {
+                    pinSetupStep = 0
+                    newPIN = ""
+                    confirmPIN = ""
+                    pinError = ""
+                    showPINSetup = true
+                } label: {
+                    HStack {
+                        Label("4-stafa PIN", systemImage: "lock.fill")
+                            .font(.subheadline)
+                            .foregroundStyle(TaxIsTheme.text)
+                        Spacer()
+                        if lockService.lockMethod == "pin" {
+                            Image(systemName: "checkmark")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(TaxIsTheme.mint)
+                        } else {
+                            Text("Stilla")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(TaxIsTheme.muted)
+                        }
+                    }
+                    .padding(.horizontal, 15).padding(.vertical, 13)
+                }
+                .buttonStyle(.plain)
             }
-            Divider().background(TaxIsTheme.border)
-            Text("Útgáfa \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")
-                .font(.caption2)
-                .foregroundStyle(TaxIsTheme.muted)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
         .background(TaxIsTheme.card)
         .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card))
-        .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card).strokeBorder(TaxIsTheme.border, lineWidth: 1))
+        .overlay(
+            RoundedRectangle(cornerRadius: TaxIsTheme.Radius.card)
+                .strokeBorder(TaxIsTheme.border, lineWidth: 1)
+        )
+    }
+
+    // MARK: - PIN setup sheet
+
+    private var pinSetupSheet: some View {
+        NavigationStack {
+            ZStack {
+                TaxIsTheme.bg.ignoresSafeArea()
+                VStack(spacing: 28) {
+                    Text(pinSetupStep == 0 ? "Veldu 4-stafa PIN" : "Staðfestu PIN")
+                        .font(.title3.bold())
+                        .foregroundStyle(TaxIsTheme.text)
+
+                    // Dot display
+                    HStack(spacing: 16) {
+                        let current = pinSetupStep == 0 ? newPIN : confirmPIN
+                        ForEach(0..<4, id: \.self) { i in
+                            Circle()
+                                .fill(i < current.count ? TaxIsTheme.mint : TaxIsTheme.borderStrong)
+                                .frame(width: 14, height: 14)
+                                .animation(.easeInOut(duration: 0.1), value: current.count)
+                        }
+                    }
+
+                    if !pinError.isEmpty {
+                        Text(pinError)
+                            .font(.footnote)
+                            .foregroundStyle(TaxIsTheme.redText)
+                    }
+
+                    LazyVGrid(
+                        columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3),
+                        spacing: 12
+                    ) {
+                        ForEach(["1","2","3","4","5","6","7","8","9","","0","⌫"], id: \.self) { key in
+                            if key.isEmpty {
+                                Color.clear.frame(height: 64)
+                            } else {
+                                Button { handlePINSetupKey(key) } label: {
+                                    Text(key)
+                                        .font(.title2.weight(.medium))
+                                        .foregroundStyle(TaxIsTheme.text)
+                                        .frame(height: 64).frame(maxWidth: .infinity)
+                                        .background(TaxIsTheme.card)
+                                        .clipShape(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control))
+                                        .overlay(RoundedRectangle(cornerRadius: TaxIsTheme.Radius.control)
+                                            .strokeBorder(TaxIsTheme.border, lineWidth: 1))
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(32)
+            }
+            .navigationTitle("Stilla PIN")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Hætta við") { showPINSetup = false }
+                }
+            }
+        }
+    }
+
+    private func handlePINSetupKey(_ key: String) {
+        var pin = pinSetupStep == 0 ? newPIN : confirmPIN
+        pinError = ""
+        if key == "⌫" {
+            if !pin.isEmpty { pin.removeLast() }
+        } else if pin.count < 4 {
+            pin += key
+        }
+        if pinSetupStep == 0 {
+            newPIN = pin
+            if newPIN.count == 4 { pinSetupStep = 1; confirmPIN = "" }
+        } else {
+            confirmPIN = pin
+            if confirmPIN.count == 4 {
+                if confirmPIN == newPIN {
+                    lockService.setPIN(newPIN)
+                    showPINSetup = false
+                } else {
+                    pinError = "PIN-númer passa ekki. Reyndu aftur."
+                    pinSetupStep = 0
+                    newPIN = ""
+                    confirmPIN = ""
+                }
+            }
+        }
     }
 
     // MARK: - Shared helpers
