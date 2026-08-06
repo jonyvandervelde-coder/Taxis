@@ -26,6 +26,7 @@
 		4CE3E2FD818458059AA51D0B /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634EBD4AEA571622C480D0E0 /* SplashView.swift */; };
 		7042DB561B15BA118198EA4C /* TaxIsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 735B3B31BD7AA2DE441E955D /* TaxIsApp.swift */; };
 		73689186E8B76EA84267E8D5 /* TaxInsightsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E40A8511BDC3FB7DC1A01BDC /* TaxInsightsService.swift */; };
+		BB00CC11DD22EE33FF44AA55 /* PayslipStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00BB11CC22DD33EE44FF55 /* PayslipStore.swift */; };
 		7EFF3FBFD0AD90CAFC7A1F2C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E582C6F5E4035EE7C2DC3A90 /* MainTabView.swift */; };
 		9778E1713F6D4B1582501C4C /* VerktakiExpenseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 486574C674B648D594076C3B /* VerktakiExpenseStore.swift */; };
 		99EE2C162A3827F647A908F5 /* TransactionsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F95A2DF638D845B4DAFB4B51 /* TransactionsListView.swift */; };
@@ -95,6 +96,7 @@
 		DD44EE55FF66AA77BB88CC01 /* UtgjoldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtgjoldView.swift; sourceTree = "<group>"; };
 		E26C187A559D6C9A6EB5E13C /* TransactionRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionRecord.swift; sourceTree = "<group>"; };
 		E40A8511BDC3FB7DC1A01BDC /* TaxInsightsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxInsightsService.swift; sourceTree = "<group>"; };
+		AA00BB11CC22DD33EE44FF55 /* PayslipStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PayslipStore.swift; path = TaxIs/Services/Tax/PayslipStore.swift; sourceTree = SOURCE_ROOT; };
 		E582C6F5E4035EE7C2DC3A90 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		EE55FF66AA77BB88CC99DD01 /* LocalizationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationManager.swift; sourceTree = "<group>"; };
 		EFD6B13A8820E00A9376C6B7 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
@@ -336,6 +338,7 @@
 			children = (
 				366B70243D6582D6EE397128 /* ReceiptExtractionService.swift */,
 				E40A8511BDC3FB7DC1A01BDC /* TaxInsightsService.swift */,
+				AA00BB11CC22DD33EE44FF55 /* PayslipStore.swift */,
 				C1A2B3C4D5E6F7A8B9C0D1E2 /* TaxCalculationEngine.swift */,
 			);
 			path = Tax;
@@ -446,6 +449,7 @@
 				1CFB1ADEB8780128DA9CDEC9 /* DeductionsView.swift in Sources */,
 				21F6A0E27B85C12175C81903 /* ProfileView.swift in Sources */,
 				73689186E8B76EA84267E8D5 /* TaxInsightsService.swift in Sources */,
+				BB00CC11DD22EE33FF44AA55 /* PayslipStore.swift in Sources */,
 				9778E1713F6D4B1582501C4C /* VerktakiExpenseStore.swift in Sources */,
 				C1A2B3C4D5E6F7A8B9C0D1E3 /* TaxCalculationEngine.swift in Sources */,
 				A1B2C3D4E5F6A7B8C9D0E1F3 /* SalariedJobStore.swift in Sources */,

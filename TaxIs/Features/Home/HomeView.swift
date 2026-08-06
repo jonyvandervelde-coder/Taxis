@@ -45,6 +45,7 @@ struct HomeView: View {
     @EnvironmentObject private var expenseStore: VerktakiExpenseStore
     @EnvironmentObject private var profileStore: UserProfileStore
     @EnvironmentObject private var ledgerStore: TaxLedgerStore
+    @EnvironmentObject private var payslipStore: PayslipStore
     @State private var selectedNotification: DashboardNotification?
     @State private var isLoading = false
     @State private var loadError: String?
@@ -96,11 +97,16 @@ struct HomeView: View {
         .sheet(item: $selectedNotification) { n in
             NotificationDetailSheet(notification: n) { selectedNotification = nil }
         }
+        // Refresh payslip totals every time this tab appears (HomeView is
+        // recreated on each tab switch, so .task is equivalent to .onAppear).
         .task {
-            await loadInsights()
+            async let payslips: () = payslipStore.refresh()
+            async let insights: () = loadInsights()
+            _ = await (payslips, insights)
             if isHeimagisting && !isSalaried && !isContractor { await ledgerStore.load() }
         }
         .refreshable {
+            await payslipStore.refresh()
             await loadInsights()
             if isHeimagisting && !isSalaried && !isContractor { await ledgerStore.load() }
         }
@@ -270,8 +276,9 @@ struct HomeView: View {
     private var overviewCard: some View {
         VStack(spacing: 0) {
             if isSalaried {
-                let total = salariedStore.currentMonthEntries
-                    .reduce(Decimal(0)) { $0 + $1.grossSalaryISK }
+                // Source of truth: confirmed payslip rows from Supabase,
+                // keyed to the current calendar month. Never re-triggers OCR.
+                let total = payslipStore.currentMonthGross
                 overviewRow(
                     icon: "doc.text",
                     label: "Launagreiðslur þennan mánuð",
@@ -678,4 +685,5 @@ func formatISK(_ value: Decimal) -> String {
         .environmentObject(VerktakiExpenseStore())
         .environmentObject(UserProfileStore())
         .environmentObject(TaxLedgerStore.shared)
+        .environmentObject(PayslipStore())
 }

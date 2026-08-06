@@ -16,6 +16,7 @@ struct TransactionConfirmationView: View {
     let onSaved: () -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var payslipStore: PayslipStore
 
     @State private var isSaving = false
     @State private var errorMessage: String?
@@ -200,6 +201,11 @@ struct TransactionConfirmationView: View {
                 aiRawResponse: ReceiptExtractionService.shared.lastRawResponseJSON ?? [:],
                 status: status
             )
+            // Pre-warm the Heim total so it's ready as soon as the user
+            // navigates back, without requiring an extra tab-switch.
+            if transaction.sourceDocumentType == .payslip {
+                Task { await payslipStore.refresh() }
+            }
             onSaved()
         } catch {
             errorMessage = error.localizedDescription

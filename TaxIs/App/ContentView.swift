@@ -24,6 +24,7 @@ struct ContentView: View {
     @StateObject private var aksturStore    = AkstursbokStore()
     @StateObject private var lm             = LocalizationManager.shared
     @StateObject private var ledgerStore    = TaxLedgerStore.shared
+    @StateObject private var payslipStore   = PayslipStore()
     @ObservedObject private var lockService = AppLockService.shared
 
     @State private var showSplash = true
@@ -65,6 +66,7 @@ struct ContentView: View {
         .environmentObject(aksturStore)
         .environmentObject(lm)
         .environmentObject(ledgerStore)
+        .environmentObject(payslipStore)
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation(.easeInOut(duration: 0.7)) {

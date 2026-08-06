@@ -146,6 +146,61 @@ final class SupabaseTransactionRepository {
         _ = try await send(request)
     }
 
+    /// Fetches all payslip-type transactions whose `transaction_date` falls
+    /// within `month` (format: "yyyy-MM", e.g. "2026-08"), scoped to the
+    /// signed-in user via RLS. Returns records newest-first.
+    ///
+    /// Date alignment: the filter uses `gte.<first-day-of-month>` and
+    /// `lt.<first-day-of-next-month>` so every date key format (ISO or
+    /// Icelandic display) maps unambiguously to the same window.
+    func fetchPayslips(month: String) async throws -> [TransactionRecord] {
+        guard
+            let startDate = monthBoundary(month: month, offset: 0),
+            let endDate   = monthBoundary(month: month, offset: 1)
+        else { return [] }
+
+        let fmt   = ExtractedTransaction.dateOnlyFormatter
+        let start = fmt.string(from: startDate)   // e.g. "2026-08-01"
+        let end   = fmt.string(from: endDate)     // e.g. "2026-09-01"
+
+        guard var comps = URLComponents(
+            url: try SupabaseConfig.restURL.appendingPathComponent("transactions"),
+            resolvingAgainstBaseURL: false
+        ) else { throw TransactionRepositoryError.invalidHTTPResponse }
+
+        comps.queryItems = [
+            URLQueryItem(name: "source_document_type", value: "eq.payslip"),
+            URLQueryItem(name: "transaction_date",      value: "gte.\(start)"),
+            URLQueryItem(name: "transaction_date",      value: "lt.\(end)"),
+            URLQueryItem(name: "order",                 value: "transaction_date.desc")
+        ]
+
+        guard let url = comps.url else {
+            throw TransactionRepositoryError.invalidHTTPResponse
+        }
+        let request = try authorizedRequest(url: url, method: "GET")
+        let data    = try await send(request)
+        guard let rows = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+            return []
+        }
+        return try rows.map { try TransactionRecord(fromPostgRESTRow: $0) }
+    }
+
+    // MARK: - Date helpers
+
+    /// Returns the first day of the month at `offset` months from `month`.
+    /// offset = 0 → start of that month; offset = 1 → start of next month.
+    private func monthBoundary(month: String, offset: Int) -> Date? {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM"
+        f.locale     = Locale(identifier: "en_US_POSIX")
+        f.timeZone   = TimeZone(identifier: "Atlantic/Reykjavik")
+        guard let base = f.date(from: month) else { return nil }
+        return Calendar(identifier: .gregorian).date(
+            byAdding: DateComponents(month: offset), to: base
+        )
+    }
+
     // MARK: - Request helpers
 
     private func authorizedRequest(url: URL, method: String) throws -> URLRequest {
